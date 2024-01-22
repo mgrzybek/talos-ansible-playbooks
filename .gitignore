@@ -1,0 +1,7 @@
+# Configuration files of the cluster
+controlplane.yaml
+worker.yaml
+talosconfig
+
+# Ansible artifacts
+*.ini

@@ -1,0 +1,18 @@
+---
+
+- hosts: controlplane
+  gather_facts: no
+  become: false
+  tasks:
+  - name: Health | Set facts
+    set_fact:
+      talosctl_opts: --nodes {{ inventory_hostname }} --endpoints {{ inventory_hostname }} --talosconfig=../../talosconfig
+
+  - name: Health | Wait for the node to be ready
+    until: health is success
+    retries: 5
+    delay: 120
+    register: health
+    delegate_to: localhost
+    changed_when: false
+    ansible.builtin.command:  talosctl {{ talosctl_opts }} health

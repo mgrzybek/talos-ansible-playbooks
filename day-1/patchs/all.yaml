@@ -1,0 +1,4 @@
+---
+- op: replace
+  path: /machine/install/disk
+  value: /dev/vda

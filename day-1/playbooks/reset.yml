@@ -1,0 +1,26 @@
+---
+
+- hosts: all
+  gather_facts: no
+  become: false
+  tasks:
+  - name: Reset | Assert variables
+    assert: 
+      fail_msg: cluster_name variable must be defined
+      that:
+      - cluster_name is defined
+      - cluster_name | length > 0
+
+  - name: Reset | Set facts
+    set_fact:
+      talosctl_opts: --nodes {{ inventory_hostname }} --endpoints {{ inventory_hostname }} --talosconfig=../../talosconfig
+
+  - name: Reset | Reset the node and reboot to a non-configured state
+    delegate_to: localhost
+    ansible.builtin.command: talosctl {{ talosctl_opts }} reset --graceful=false --reboot=true --wipe-mode=all --wait
+
+  - name: Reset | Remove the kubectl context
+    run_once: true
+    delegate_to: localhost
+    ansible.builtin.command: kubectl config unset clusters.{{ cluster_name }}
+

@@ -1,0 +1,13 @@
+---
+
+- hosts: all
+  gather_facts: no
+  become: false
+  tasks:
+  - name: Shutdown | Set facts
+    set_fact:
+      talosctl_opts: --talosconfig=../../talosconfig  -n {{ inventory_hostname }} -e {{ inventory_hostname }}
+
+  - name: Shutdown | Shutdown the cluster
+    delegate_to: localhost
+    ansible.builtin.command: talosctl {{ talosctl_opts }} shutdown

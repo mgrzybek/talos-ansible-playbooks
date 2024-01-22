@@ -1,0 +1,28 @@
+---
+
+- hosts: all
+  gather_facts: no
+  become: false
+  tasks:
+  - name: Configuration generation | Assert variables
+    assert: 
+      fail_msg: cluster_name variable must be defined
+      that:
+      - cluster_name is defined
+      - cluster_name | length > 0
+
+  - name: Configuration generation | Check actual configuration
+    run_once: true
+    register: controlplane
+    delegate_to: localhost
+    stat:
+      path: ../controlplane.yaml
+
+  - name: Configuration generation | Create talos configuration for the cluster (talosconfig, worker.yaml, controlplane.yaml)
+    when: controlplane.stat.exists == false
+    run_once: true
+    delegate_to: localhost
+    ansible.builtin.command: |
+      talosctl gen config {{ cluster_name }} https://{{ inventory_hostname }}:6443 \
+      --config-patch @../patchs/all.yaml \
+      -o ../..
