@@ -41,7 +41,15 @@ shutdown: ## Stop the nodes but keep the current configuration
 openebs-operator: ## Install OpenEBS operator
 	kubectl apply -f https://openebs.github.io/charts/openebs-operator.yaml
 	kubectl label namespace openebs pod-security.kubernetes.io/enforce=privileged
-	kubectl -n openebs apply -f manifests/openebs.configmap.yaml 
+
+.PHONY: openebs-test
+openebs-test-local-pvc: ## Test a local PVC using a nginx pod
+	@kubectl get ns test 2> /dev/null || kubectl create ns test > /dev/null
+	@kubectl -n test apply -f manifests/nginx.yaml > /dev/null
+	@kubectl -n test wait deployment/nginx-deployment --for=condition=Available > /dev/null
+	@kubectl -n test exec $$(kubectl -n test get pods -o json | jq -r ".items[0].metadata.name") -- df -h  \
+		| fgrep -q /var/lib/nginx && echo "OpenEBS host path provisioning is working"
+	@kubectl delete ns test > /dev/null
 
 .PHONY: create-cluster
 create-cluster: ## Create a cluster
