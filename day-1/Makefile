@@ -1,9 +1,3 @@
-ifdef MAYASTOR
-	MAYASTOR=true
-else
-	MAYASTOR=false
-endif
-
 ifdef LIMIT
 	LIMIT_OPTS=-l $(LIMIT)
 else
@@ -12,7 +6,6 @@ endif
 
 ANSIBLE_OPTS=-i ../inventory.ini \
 	-e cluster_name=$(CLUSTER_NAME) \
-	-e use_mayastor=$(MAYASTOR) \
 	$(LIMIT_OPTS)
 
 ANSIBLE_PLAYBOOK=ansible-playbook $(ANSIBLE_OPTS)

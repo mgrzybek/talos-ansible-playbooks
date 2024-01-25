@@ -15,4 +15,9 @@ $ make cluster-create
 
 ```console
 $ make openebs-operator # Deploy OpenEBS operator
+$ make openebs-test-local-pvc # Test local PVC using OpenEBS
+```
+
+```console
+$ make openebs-mayastor ## Deploy Mayastor resources
 ```
