@@ -19,5 +19,5 @@ $ make openebs-test-local-pvc # Test local PVC using OpenEBS
 ```
 
 ```console
-$ make openebs-mayastor ## Deploy Mayastor resources
+$ make openebs-mayastor # Deploy Mayastor resources
 ```
