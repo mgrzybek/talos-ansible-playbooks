@@ -5,3 +5,6 @@ talosconfig
 
 # Ansible artifacts
 *.ini
+
+# Manifests generated using helm
+mayastor.resources.yaml

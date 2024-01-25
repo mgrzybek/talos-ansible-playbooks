@@ -8,7 +8,7 @@ You should select the right disk to install the system. By default `/dev/vda` is
 
 ```console
 $ export CLUSTER_NAME=my-cluster # Choose cluster name
-$ make create-cluster
+$ make cluster-create
 ```
 
 ## Deploy the desired storage layer

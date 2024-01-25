@@ -25,5 +25,4 @@
     ansible.builtin.command: |
       talosctl gen config {{ cluster_name }} https://{{ inventory_hostname }}:6443 \
       --config-patch @../patchs/all.yaml \
-      --config-patch @../patchs/openebs-kubelet.yaml \
       -o ../..
