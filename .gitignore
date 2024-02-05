@@ -3,6 +3,10 @@ controlplane.yaml
 worker.yaml
 talosconfig
 
+# Factory data
+schematic.json
+*.iso
+
 # Ansible artifacts
 *.ini
 
