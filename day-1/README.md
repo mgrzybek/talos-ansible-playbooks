@@ -21,3 +21,15 @@ $ make openebs-test-local-pvc # Test local PVC using OpenEBS
 ```console
 $ make openebs-mayastor # Deploy Mayastor resources
 ```
+
+## Deploy the deployment stack
+
+```console
+$ export SIDERO_CONTROLLER_MANAGER_HOST_NETWORK=false # We use MetalLB
+$ export SIDERO_CONTROLLER_MANAGER_DEPLOYMENT_STRATEGY=Recreate
+$ export SIDERO_CONTROLLER_MANAGER_API_ENDPOINT= # MetalLB floating IP for Sidero API
+$ export SIDERO_CONTROLLER_MANAGER_SIDEROLINK_ENDPOINT= # MetalLB floating IP for Siredolinks’s Wireguard
+
+$ make dhcp-service # Deploy dhcpd
+$ make sidero-metal # Deploy sidero metal
+```

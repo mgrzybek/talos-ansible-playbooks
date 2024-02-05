@@ -1,4 +1,4 @@
-ifdef LIMIT
+ifdef LIMIT ## Limit ansible hosts to manage
 	LIMIT_OPTS=-l $(LIMIT)
 else
 	LIMIT_OPTS=
@@ -13,6 +13,19 @@ ANSIBLE_PLAYBOOK=ansible-playbook $(ANSIBLE_OPTS)
 MAYASTOR_NAMESPACE=$(shell yq ".metadata.name" manifests/mayastor.namespace.yaml)
 OPENEBS_NAMESPACE=$(shell yq ".metadata.name" manifests/openebs.namespace.yaml)
 TESTING_NAMESPACE=$(shell yq ".metadata.namespace" manifests/nginx-testing.resources.yaml | tail -n1)
+
+ifndef SIDERO_CONTROLLER_MANAGER_HOST_NETWORK ## Bind Sidero endpoint using the host net
+	SIDERO_CONTROLLER_MANAGER_HOST_NETWORK=false
+endif
+ifndef SIDERO_CONTROLLER_MANAGER_DEPLOYMENT_STRATEGY ## Sidero deployment strategy
+	SIDERO_CONTROLLER_MANAGER_DEPLOYMENT_STRATEGY=Recreate
+endif
+ifndef SIDERO_CONTROLLER_MANAGER_API_ENDPOINT ## Sidero API endpoint
+	SIDERO_CONTROLLER_MANAGER_API_ENDPOINT=192.168.1.150
+endif
+ifndef SIDERO_CONTROLLER_MANAGER_SIDEROLINK_ENDPOINT ## Siderolink endpoint
+	SIDERO_CONTROLLER_MANAGER_SIDEROLINK_ENDPOINT=192.168.1.150
+endif
 
 ##############################################################################
 # Files to watch
@@ -86,12 +99,50 @@ openebs-mayastor: manifests/mayastor.resources.yaml ## Install Mayastor CSI
 	kubectl -n $(MAYASTOR_NAMESPACE) apply -f manifests/mayastor.resources.yaml
 
 ##############################################################################
+# Metal-as-a-Service targets
+
+.PHONY: dhcp-service
+dhcp-service: ## Install the dhcp deployment
+
+.PHONY: sidero-metal
+sidero-metal: ## Install the sidero deployment stack
+	clusterctl init -b talos -c talos -i sidero
+
+.PHONY: metallb
+metallb: ## Deploy metallb
+	kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.3/config/manifests/metallb-native.yaml
+
+.PHONY: metallb-test
+metallb-test: ## Test Metal LB layer2 IP pool using a nginx pod
+	@kubectl apply -f manifests/nginx-testing.resources.yaml > /dev/null
+	@kubectl -n $(TESTING_NAMESPACE) wait deployment/nginx-deployment --for=condition=Available > /dev/null
+	@curl http://$$(kubectl -n testing get svc -o json | jq -r ".items[0].status.loadBalancer.ingress[0].ip"):8080 \
+		| fgrep -q "Welcome to nginx" && echo "MeltalLB L2 stack is working"
+	@kubectl delete -f manifests/nginx-testing.resources.yaml > /dev/null
+
+##############################################################################
 # Help
 
 .PHONY: help
 help: ## This help message
-	@awk -F: \
-		'/^([a-z\.-]+): *.* ## (.+)$$/ {gsub(/: .*?\s*##/, "\t");print}' \
+	@echo Global variables
+	@echo ================
+	@awk \
+		'$$1 ~ /^ifdef/ && $$3 ~ /##/ {gsub(/##/,"\t") ; gsub("ifdef ","") ; print $$0}' \
 		Makefile \
-	| expand -t25 \
+	| expand -t50 \
+	| sort
+	@awk \
+		'$$1 ~ /^ifndef/ && $$3 ~ /##/ {gsub(/##/,"\t") ; gsub("ifndef ","") ; print $$0}' \
+		Makefile \
+	| expand -t50 \
+	| sort
+	@echo
+
+	@echo Targets
+	@echo =======
+	@awk -F: \
+		'$$1 ~/^[a-z\$$\.\/_]/ && $$2~/##/ {gsub(/: .*?\s*##/, "\t");print $$0}' \
+		Makefile \
+	| expand -t35 \
 	| sort

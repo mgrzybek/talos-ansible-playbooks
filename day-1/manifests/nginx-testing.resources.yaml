@@ -52,3 +52,16 @@ spec:
       - name: nginx-pv-claim
         persistentVolumeClaim:
           claimName: nginx-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-lb
+  namespace: testing
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: nginx
+  type: LoadBalancer
