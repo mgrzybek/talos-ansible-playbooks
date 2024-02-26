@@ -30,6 +30,5 @@ $ export SIDERO_CONTROLLER_MANAGER_DEPLOYMENT_STRATEGY=Recreate
 $ export SIDERO_CONTROLLER_MANAGER_API_ENDPOINT= # MetalLB floating IP for Sidero API
 $ export SIDERO_CONTROLLER_MANAGER_SIDEROLINK_ENDPOINT= # MetalLB floating IP for Siredolinks’s Wireguard
 
-$ make dhcp-service # Deploy dhcpd
 $ make sidero-metal # Deploy sidero metal
 ```
