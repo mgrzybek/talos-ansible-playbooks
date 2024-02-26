@@ -10,5 +10,7 @@ schematic.json
 # Ansible artifacts
 *.ini
 
-# Manifests generated using helm
+# Manifests generated using helm or downloaded from internet
 mayastor.resources.yaml
+metallb-native.yaml
+*.clusterctl.yaml

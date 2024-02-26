@@ -4,9 +4,13 @@ else
 	LIMIT_OPTS=
 endif
 
+ifdef VERBOSE
+	VERBOSE_OPTS=-vvv
+endif
+
 ANSIBLE_OPTS=-i ../inventory.ini \
 	-e cluster_name=$(CLUSTER_NAME) \
-	$(LIMIT_OPTS)
+	$(LIMIT_OPTS) $(VERBOSE_OPTS)
 
 ANSIBLE_PLAYBOOK=ansible-playbook $(ANSIBLE_OPTS)
 
@@ -14,9 +18,7 @@ MAYASTOR_NAMESPACE=$(shell yq ".metadata.name" manifests/mayastor.namespace.yaml
 OPENEBS_NAMESPACE=$(shell yq ".metadata.name" manifests/openebs.namespace.yaml)
 TESTING_NAMESPACE=$(shell yq ".metadata.namespace" manifests/nginx-testing.resources.yaml | tail -n1)
 
-ifndef SIDERO_CONTROLLER_MANAGER_HOST_NETWORK ## Bind Sidero endpoint using the host net
-	SIDERO_CONTROLLER_MANAGER_HOST_NETWORK=false
-endif
+SIDERO_CONTROLLER_MANAGER_HOST_NETWORK=false
 ifndef SIDERO_CONTROLLER_MANAGER_DEPLOYMENT_STRATEGY ## Sidero deployment strategy
 	SIDERO_CONTROLLER_MANAGER_DEPLOYMENT_STRATEGY=Recreate
 endif
@@ -25,6 +27,10 @@ ifndef SIDERO_CONTROLLER_MANAGER_API_ENDPOINT ## Sidero API endpoint
 endif
 ifndef SIDERO_CONTROLLER_MANAGER_SIDEROLINK_ENDPOINT ## Siderolink endpoint
 	SIDERO_CONTROLLER_MANAGER_SIDEROLINK_ENDPOINT=192.168.1.150
+endif
+
+ifndef METALLB_L2_IPADDR_POOL_NAME ## Define the pool name used to pickup up addresses for the load balancing service
+	METALLB_L2_IPADDR_POOL_NAME=metal-as-a-service
 endif
 
 ##############################################################################
@@ -101,16 +107,27 @@ openebs-mayastor: manifests/mayastor.resources.yaml ## Install Mayastor CSI
 ##############################################################################
 # Metal-as-a-Service targets
 
-.PHONY: dhcp-service
-dhcp-service: ## Install the dhcp deployment
+manifests/bootstrap.clusterctl.yaml:
+	clusterctl generate provider --bootstrap talos > manifests/bootstrap.clusterctl.yaml
+
+manifests/controlplane.clusterctl.yaml:
+	clusterctl generate provider --control-plane talos > manifests/controlplane.clusterctl.yaml
+
+manifests/infrastructure.clusterctl.yaml:
+	clusterctl generate provider --infrastructure sidero > manifests/infrastructure.clusterctl.yaml
 
 .PHONY: sidero-metal
-sidero-metal: ## Install the sidero deployment stack
-	clusterctl init -b talos -c talos -i sidero
+sidero-metal: manifests/bootstrap.clusterctl.yaml manifests/controlplane.clusterctl.yaml manifests/infrastructure.clusterctl.yaml ## Install the sidero deployment stack
+	$(ANSIBLE_PLAYBOOK) playbooks/sidero-metal.yml \
+		-e ipaddr_pool_name=$(METALLB_L2_IPADDR_POOL_NAME) \
+		-e api_endpoint_ipaddr=$(SIDERO_CONTROLLER_MANAGER_API_ENDPOINT) \
+		-e siderolink_endpoint_ipaddr=$(SIDERO_CONTROLLER_MANAGER_SIDEROLINK_ENDPOINT)
 
 .PHONY: metallb
 metallb: ## Deploy metallb
-	kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.3/config/manifests/metallb-native.yaml
+	$(ANSIBLE_PLAYBOOK) playbooks/metallb-layer2.yml \
+		-e metallb_l2_ipaddr_pool=$(METALLB_L2_IPADDR_POOL) \
+		-e ipaddr_pool_name=$(METALLB_L2_IPADDR_POOL_NAME)
 
 .PHONY: metallb-test
 metallb-test: ## Test Metal LB layer2 IP pool using a nginx pod

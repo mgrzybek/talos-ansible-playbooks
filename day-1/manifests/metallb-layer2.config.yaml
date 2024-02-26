@@ -1,17 +1,11 @@
----
+----
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
   name: production
   namespace: metallb-system
 spec:
-  addresses:
-  - 192.168.64.10/32 
-  - 192.168.64.11/32 
-  - 192.168.64.12/32 
-  - 192.168.64.13/32 
-  - 192.168.64.14/32 
-  - 192.168.64.15/32 
+  addresses: "{{ ipaddr_pool | from_yaml }}"
 ---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
@@ -20,4 +14,4 @@ metadata:
   namespace: metallb-system
 spec:
   ipAddressPools:
-   - production
+   - "{{ ipaddr_pool_name }}"

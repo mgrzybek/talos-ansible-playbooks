@@ -1,0 +1,56 @@
+---
+
+# metadata:
+#   annotations:
+#    metallb.universe.tf/loadBalancerIPs: 192.168.64.10
+#    metallb.universe.tf/address-pool: metal-as-a-service
+#    metallb.universe.tf/allow-shared-ip: "key-to-share-1.2.3.4"
+# spec:
+#   type: LoadBalancer
+
+- hosts: controlplane
+  gather_facts: no
+  become: false
+  run_once: true
+  tasks:
+  - name: Sidero | Set facts
+    set_fact:
+      sidero_metallb_manifest: ../manifests/sidero-metallb.service.yaml
+      clusterctl_manifests:
+      - ../manifests/bootstrap.clusterctl.yaml
+      - ../manifests/controlplante.clusterctl.yaml
+      - ../manifests/infrastructure.clusterctl.yaml
+
+  - name: Sidero | Check variables
+    assert:
+      fail_msg: The required env variables must be set
+      that:
+      - ipaddr_pool_name | length > 0
+      - api_endpoint_ipaddr | length > 0
+      - siderolink_endpoint_ipaddr | length > 0
+
+  - name: Sidero | Create the resources using clusterctl
+    with_items: "{{ clusterctl_manifests }}"
+    delegate_to: localhost
+    kubernetes.core.k8s:
+      state: present
+      src: "{{ item }}"
+
+  - name: Sidero | Patch the services to use MetalLB
+    delegate_to: localhost
+    kubernetes.core.k8s:
+      state: present
+      definition: "{{ lookup('template', sidero_metallb_manifest) | from_yaml }}') | from_yaml }}"
+    with_items:
+    - name: sidero-webhook
+      port: 443
+    - name: sidero-http
+      port: 8081
+      cluster_ip: "{{ api_endpoint_ipaddr }}"
+    - name: sidero-dhcp
+      port: 67
+    - name: sidero-tftp
+      port: 69
+    - name: sidero-siderolink
+      port: 51821
+      cluster_ip: "{{ siderolink_endpoint_ipaddr }}"
