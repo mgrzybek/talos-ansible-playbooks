@@ -1,0 +1,88 @@
+<mxfile host="65bd71144e">
+    <diagram id="poJKfbgW124yGpaNRa2K" name="Page-1">
+        <mxGraphModel dx="1580" dy="1130" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="4" value="2. Get the generated&lt;br&gt;ISO image" style="endArrow=classic;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#000000;" edge="1" parent="1" source="3" target="2">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="110" y="720" as="sourcePoint"/>
+                        <mxPoint x="160" y="670" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="7" value="Day 0" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="160" width="560" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="Talos Factory" style="shape=image;imageAspect=0;aspect=fixed;verticalLabelPosition=bottom;verticalAlign=top;image=data:image/svg+xml,PHN2ZyB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2aWV3Qm94PSIwIDAgMjAzLjc0IDIyNi4wNSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50KTt9LmNscy0ye2ZpbGw6dXJsKCNsaW5lYXItZ3JhZGllbnQtMik7fS5jbHMtM3tmaWxsOnVybCgjbGluZWFyLWdyYWRpZW50LTMpO30uY2xzLTR7ZmlsbDp1cmwoI2xpbmVhci1ncmFkaWVudC00KTt9LmNscy01e2ZpbGw6dXJsKCNsaW5lYXItZ3JhZGllbnQtNSk7fTwvc3R5bGU+PGxpbmVhckdyYWRpZW50IGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB5Mj0iMjM3LjgxIiB4Mj0iMTAxLjg1IiB5MT0iLTE1LjE5IiB4MT0iMTAxLjg1IiBpZD0ibGluZWFyLWdyYWRpZW50Ij48c3RvcCBzdG9wLWNvbG9yPSIjZmZkMjAwIiBvZmZzZXQ9IjAiLz48c3RvcCBzdG9wLWNvbG9yPSIjZmZiNTAwIiBvZmZzZXQ9IjAuMDYiLz48c3RvcCBzdG9wLWNvbG9yPSIjZmY4YzAwIiBvZmZzZXQ9IjAuMTQiLz48c3RvcCBzdG9wLWNvbG9yPSIjZmY3MzAwIiBvZmZzZXQ9IjAuMjEiLz48c3RvcCBzdG9wLWNvbG9yPSIjZmY2YTAwIiBvZmZzZXQ9IjAuMjYiLz48c3RvcCBzdG9wLWNvbG9yPSIjZmM0ZjBlIiBvZmZzZXQ9IjAuMzMiLz48c3RvcCBzdG9wLWNvbG9yPSIjZjkyZjFlIiBvZmZzZXQ9IjAuNDMiLz48c3RvcCBzdG9wLWNvbG9yPSIjZjgxYjI3IiBvZmZzZXQ9IjAuNTEiLz48c3RvcCBzdG9wLWNvbG9yPSIjZjcxNDJiIiBvZmZzZXQ9IjAuNTciLz48c3RvcCBzdG9wLWNvbG9yPSIjZGYxNjJlIiBvZmZzZXQ9IjAuNjgiLz48c3RvcCBzdG9wLWNvbG9yPSIjYWYxYTM4IiBvZmZzZXQ9IjAuNzkiLz48c3RvcCBzdG9wLWNvbG9yPSIjNGIyMTRjIiBvZmZzZXQ9IjEiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCB4bGluazpocmVmPSIjbGluZWFyLWdyYWRpZW50IiB5Mj0iMjM3LjgxIiB4Mj0iMjQuODQiIHkxPSItMTUuMTkiIHgxPSIyNC44NCIgaWQ9ImxpbmVhci1ncmFkaWVudC0yIi8+PGxpbmVhckdyYWRpZW50IHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiIHkyPSIyMzcuODEiIHgyPSIxNzguOSIgeTE9Ii0xNS4xOSIgeDE9IjE3OC45IiBpZD0ibGluZWFyLWdyYWRpZW50LTMiLz48bGluZWFyR3JhZGllbnQgeGxpbms6aHJlZj0iI2xpbmVhci1ncmFkaWVudCIgeTI9IjIzNy44MSIgeDI9IjE0NS4wNiIgeTE9Ii0xNS4xOSIgeDE9IjE0NS4wNiIgaWQ9ImxpbmVhci1ncmFkaWVudC00Ii8+PGxpbmVhckdyYWRpZW50IHhsaW5rOmhyZWY9IiNsaW5lYXItZ3JhZGllbnQiIHkyPSIyMzcuODEiIHgyPSI1OC42NCIgeTE9Ii0xNS4xOSIgeDE9IjU4LjY0IiBpZD0ibGluZWFyLWdyYWRpZW50LTUiLz48L2RlZnM+PGcgZGF0YS1uYW1lPSJMYXllciAyIiBpZD0iTGF5ZXJfMiI+PGcgZGF0YS1uYW1lPSJMYXllciAxIiBpZD0iTGF5ZXJfMS0yIj48cGF0aCBkPSJNMTAxLjg5LDIyNi4wNWMyLjg1LDAsNS42Ny0uMTUsOC40Ni0uMzVWLjM1Yy0yLjgtLjIxLTUuNjItLjM1LTguNDgtLjM1cy01LjcuMTQtOC41Mi4zNVYyMjUuNjljMi44MS4yMSw1LjY0LjM1LDguNS4zNloiIGNsYXNzPSJjbHMtMSIvPjxwYXRoIGQ9Ik0xMS41Niw1MC45LDkuMTIsNDguNDdBMTEyLjgyLDExMi44MiwwLDAsMCwuMiw2My42MWMyOS40MiwyOS44OSwzMi41Miw0NC4zMSwzMi40OCw0OS4xNEMzMi41NywxMjUsMTcuNTgsMTQ0LjIxLDAsMTYyYTExMy42OSwxMTMuNjksMCwwLDAsOC44NCwxNS4xNWMxLTEsMS45NS0xLjkyLDIuOTItMi45LDI1LjM3LTI1LjU0LDM3Ljc3LTQ1LjYxLDM3LjkyLTYxLjM4UzM3LjM2LDc3LDExLjU2LDUwLjlaIiBjbGFzcz0iY2xzLTIiLz48cGF0aCBkPSJNMTkyLDE3NC4yOWwyLjkyLDIuOUExMTMuNjksMTEzLjY5LDAsMCwwLDIwMy43NCwxNjJjLTE3LjU3LTE3LjgzLTMyLjU2LTM3LjA5LTMyLjY4LTQ5LjI5LS4xMS0xMS45LDE0Ljc5LTMxLjE1LDMyLjQ2LTQ5LjE4YTExMi44OCwxMTIuODgsMCwwLDAtOC45LTE1LjFsLTIuNDQsMi40M2MtMjUuOCwyNi4wNS0zOC4yNyw0Ni4zNC0zOC4xMiw2MlMxNjYuNjEsMTQ4Ljc1LDE5MiwxNzQuMjlaIiBjbGFzcz0iY2xzLTMiLz48cGF0aCBkPSJNMTQwLjY4LDExMi44M2MwLTIyLDkuODEtNTguNTgsMjQuOTItOTMuMTVBMTEzLDExMywwLDAsMCwxNTAuNDUsMTFjLTE2LjU0LDM3LjI3LTI2Ljc4LDc2LjkxLTI2Ljc4LDEwMS44NywwLDI0LjE1LDExLjA5LDY0LjIzLDI3LjkzLDEwMS43YTExMywxMTMsMCwwLDAsMTQuODQtOC43N0MxNTAuODUsMTcwLjczLDE0MC42OCwxMzQuMDcsMTQwLjY4LDExMi44M1oiIGNsYXNzPSJjbHMtNCIvPjxwYXRoIGQ9Ik04MCwxMTIuODNDODAsODcuNzQsNjkuMzUsNDcuODgsNTMsMTEuMDdhMTEyLjc2LDExMi43NiwwLDAsMC0xNC45Myw4LjY0QzUzLjIxLDU0LjI2LDYzLDkwLjg1LDYzLDExMi44M2MwLDIxLjIzLTEwLjE3LDU3Ljg4LTI1Ljc2LDkyLjkxYTExMy42NiwxMTMuNjYsMCwwLDAsMTQuODQsOC43N0M2OC45NCwxNzcuMDUsODAsMTM3LDgwLDExMi44M1oiIGNsYXNzPSJjbHMtNSIvPjwvZz48L2c+PC9zdmc+;" vertex="1" parent="7">
+                    <mxGeometry x="426.6" y="80" width="55" height="61.11" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="YAML File" style="sketch=0;aspect=fixed;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;labelPosition=center;verticalLabelPosition=top;verticalAlign=bottom;align=center;fillColor=#00188D;shape=mxgraph.azure.file" vertex="1" parent="7">
+                    <mxGeometry x="51.5" y="60" width="47" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="1. Send the building request" style="endArrow=classic;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#000000;" edge="1" parent="7" source="5" target="3">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="280" y="190" as="sourcePoint"/>
+                        <mxPoint x="160" y="150" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="8" value="Day 1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="400" width="560" height="440" as="geometry"/>
+                </mxCell>
+                <mxCell id="2" value="Custom ISO Image" style="aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;spacingTop=3;image;image=img/lib/active_directory/cd_dvd.svg;" parent="8" vertex="1">
+                    <mxGeometry x="40" y="60" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="DHCP Service" style="verticalLabelPosition=top;sketch=0;aspect=fixed;html=1;verticalAlign=bottom;strokeColor=none;align=center;outlineConnect=0;shape=mxgraph.citrix.dhcp_server;labelPosition=center;" vertex="1" parent="8">
+                    <mxGeometry x="43.89" y="218.8" width="42.22" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="Ansible&lt;br&gt;Inventory" style="sketch=0;aspect=fixed;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;fillColor=#00188D;shape=mxgraph.azure.file" vertex="1" parent="8">
+                    <mxGeometry x="41.5" y="340" width="47" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="5. Create the inventory" style="endArrow=classic;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" edge="1" parent="8" source="15" target="14">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="531.5" y="210" as="sourcePoint"/>
+                        <mxPoint x="581.5" y="160" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="18" value="Start the playbooks" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#005F4B;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam2.command_line;" vertex="1" parent="8">
+                    <mxGeometry x="250" y="351" width="28.000000000000004" height="28.000000000000004" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="6. Reads&lt;br&gt;the inventory" style="endArrow=classic;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#000000;" edge="1" parent="8" source="18" target="14">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="10" y="570" as="sourcePoint"/>
+                        <mxPoint x="60" y="520" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="21" value="Talos and k8s&lt;br&gt;files" style="sketch=0;aspect=fixed;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;fillColor=#00188D;shape=mxgraph.azure.file" vertex="1" parent="1">
+                    <mxGeometry x="460.6" y="740" width="47" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="6. Creates the&lt;br&gt;configuration&lt;br&gt;files" style="endArrow=classic;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#000000;" edge="1" parent="1" source="18" target="21">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="220" y="1020" as="sourcePoint"/>
+                        <mxPoint x="480" y="1050" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="19" value="6. Manages the nodes" style="endArrow=classic;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#000000;" edge="1" parent="1" source="18" target="10">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="270" y="1110" as="sourcePoint"/>
+                        <mxPoint x="320" y="1060" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="10" value="" style="points=[];aspect=fixed;html=1;align=center;shadow=0;dashed=0;image;image=img/lib/allied_telesis/storage/Datacenter_Server_Rack.svg;" vertex="1" parent="1">
+                    <mxGeometry x="440" y="440" width="88.2" height="178.8" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="3. Plug the ISO&lt;br&gt;into the machines" style="endArrow=classic;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" edge="1" parent="1" source="2" target="10">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="700" y="520" as="sourcePoint"/>
+                        <mxPoint x="750" y="470" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="16" value="4. Start the machines&lt;br&gt;using DHCP" style="endArrow=classic;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" edge="1" parent="1" source="15" target="10">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="750" y="540" as="sourcePoint"/>
+                        <mxPoint x="800" y="490" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
