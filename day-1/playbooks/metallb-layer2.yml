@@ -18,6 +18,7 @@
       - metallb_l2_ipaddr_pool is defined
       - metallb_l2_ipaddr_pool is iterable
       - ipaddr_pool | length > 0
+      - ipaddr_pool[0] != ""
       - ipaddr_pool_name is defined
       - ipaddr_pool_name | length > 5
 
