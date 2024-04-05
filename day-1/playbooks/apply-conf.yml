@@ -3,6 +3,7 @@
 - hosts: controlplane
   gather_facts: no
   become: false
+  serial: 1
   tasks:
   - name: Applying machines’ configuration | Setting facts
     set_fact:
@@ -12,9 +13,16 @@
     delegate_to: localhost
     ansible.builtin.command: talosctl apply-config {{ talosctl_opts }} --file ../../controlplane.yaml
 
+  - name: Pause for 5 minutes to let the machine download the images
+    when: ansible_play_hosts | length > 1
+    ansible.builtin.pause:
+      prompt: 
+      minutes: 5
+
 - hosts: worker
   gather_facts: no
   become: false
+  serial: 1
   tasks:
   - name: Applying machines’ configuration | Setting facts
     set_fact:
@@ -23,3 +31,8 @@
   - name: Applying machines’ configuration | Workers
     delegate_to: localhost
     ansible.builtin.command: talosctl apply-config {{ talosctl_opts }} --file ../../worker.yaml
+
+  - name: Pause for 5 minutes to let the machine download the images
+    when: ansible_play_hosts | length > 1
+    ansible.builtin.pause:
+      minutes: 5

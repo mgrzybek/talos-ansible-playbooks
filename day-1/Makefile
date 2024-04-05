@@ -14,9 +14,7 @@ ANSIBLE_OPTS=-i ../inventory.ini \
 
 ANSIBLE_PLAYBOOK=ansible-playbook $(ANSIBLE_OPTS)
 
-MAYASTOR_NAMESPACE=$(shell yq ".metadata.name" manifests/mayastor.namespace.yaml)
-OPENEBS_NAMESPACE=$(shell yq ".metadata.name" manifests/openebs.namespace.yaml)
-TESTING_NAMESPACE=$(shell yq ".metadata.namespace" manifests/nginx-testing.resources.yaml | tail -n1)
+TESTING_NAMESPACE=$(shell yq ".metadata.namespace" manifests/nginx-testing-metallb.resources.yaml | tail -n1)
 
 SIDERO_CONTROLLER_MANAGER_HOST_NETWORK=false
 ifndef SIDERO_CONTROLLER_MANAGER_DEPLOYMENT_STRATEGY ## Sidero deployment strategy
@@ -27,10 +25,6 @@ ifndef SIDERO_CONTROLLER_MANAGER_API_ENDPOINT ## Sidero API endpoint
 endif
 ifndef SIDERO_CONTROLLER_MANAGER_SIDEROLINK_ENDPOINT ## Siderolink endpoint
 	SIDERO_CONTROLLER_MANAGER_SIDEROLINK_ENDPOINT=192.168.1.150
-endif
-
-ifndef METALLB_L2_IPADDR_POOL_NAME ## Define the pool name used to pickup up addresses for the load balancing service
-	METALLB_L2_IPADDR_POOL_NAME=metal-as-a-service
 endif
 
 ##############################################################################
@@ -46,14 +40,14 @@ endif
 	$(ANSIBLE_PLAYBOOK) playbooks/gen-conf.yml
 
 ##############################################################################
-# Talos targets
+# Create the cluster
 
 .PHONY: bootstrap
 bootstrap:
 	$(ANSIBLE_PLAYBOOK) playbooks/bootstrap.yml
 
-.PHONY: apply
-apply:
+.PHONY: apply-conf
+apply-conf:
 	$(ANSIBLE_PLAYBOOK) playbooks/apply-conf.yml
 
 .PHONY: health
@@ -72,37 +66,22 @@ cluster-shutdown: ## Stop the nodes but keep the current configuration
 .PHONY: cluster-cneate
 cluster-create: ## Create a cluster
 	@$(MAKE) ../controlplane.yaml
-	@$(MAKE) apply
+	@$(MAKE) apply-conf
 	@$(MAKE) bootstrap
 
 ##############################################################################
-# OpenEBS targets
+# Rook Ceph targets
 
-manifests/mayastor.resources.yaml: ## Create mayastor manifest using helm template
-	@helm template mayastor mayastor/mayastor \
-		-n $(MAYASTOR_NAMESPACE) \
-		--version 2.5.0 \
-		> manifests/mayastor.yaml
+.PHONY: rook-ceph-operator
+rook-ceph-operator: ## Install Rook operator for Ceph
+	kubectl apply -f manifests/rook.common.yaml
+	kubectl patch namespace rook-ceph -p '{ "metadata": { "labels": { "pod-security.kubernetes.io/enforce": "privileged" } } }'
+	kubectl apply -f manifests/rook.crds.yaml  -f manifests/rook.operator.yaml
+	kubectl -n rook-ceph wait deployment/rook-ceph-operator --for=condition=Available > /dev/null
 
-.PHONY: openebs-operator
-openebs-operator: ## Install OpenEBS operator
-	$(ANSIBLE_PLAYBOOK) playbooks/prepare-openebs.yml
-	kubectl apply -f https://openebs.github.io/charts/openebs-operator.yaml
-	kubectl apply -f manifests/openebs.namespace.yaml
-
-.PHONY: openebs-test-local-pvc
-openebs-test-local-pvc: ## Test a local PVC using a nginx pod
-	@kubectl apply -f manifests/nginx-testing.resources.yaml > /dev/null
-	@kubectl -n $(TESTING_NAMESPACE) wait deployment/nginx-deployment --for=condition=Available > /dev/null
-	@kubectl -n $(TESTING_NAMESPACE) exec $$(kubectl -n $(TESTING_NAMESPACE) get pods -o json | jq -r ".items[0].metadata.name") -- df -h  \
-		| fgrep -q /var/lib/nginx && echo "OpenEBS host path provisioning is working"
-	@kubectl delete -f manifests/nginx-testing.resources.yaml > /dev/null
-
-.PHONY: openebs-mayastor
-openebs-mayastor: manifests/mayastor.resources.yaml ## Install Mayastor CSI
-	$(ANSIBLE_PLAYBOOK) playbooks/prepare-mayastor.yml
-	kubectl apply -f manifests/mayastor.namespace.yaml
-	kubectl -n $(MAYASTOR_NAMESPACE) apply -f manifests/mayastor.resources.yaml
+.PHONY: rook-ceph-cluster
+rook-ceph-cluster: rook-ceph-operator
+	kubectl apply -f manifests/rook.cluster.yaml
 
 ##############################################################################
 # Metal-as-a-Service targets
@@ -123,19 +102,17 @@ sidero-metal: manifests/bootstrap.clusterctl.yaml manifests/controlplane.cluster
 		-e api_endpoint_ipaddr=$(SIDERO_CONTROLLER_MANAGER_API_ENDPOINT) \
 		-e siderolink_endpoint_ipaddr=$(SIDERO_CONTROLLER_MANAGER_SIDEROLINK_ENDPOINT)
 
-.PHONY: metallb
-metallb: ## Deploy metallb
-	$(ANSIBLE_PLAYBOOK) playbooks/metallb-layer2.yml \
-		-e metallb_l2_ipaddr_pool=$(METALLB_L2_IPADDR_POOL) \
-		-e ipaddr_pool_name=$(METALLB_L2_IPADDR_POOL_NAME)
+##############################################################################
+# Observability targets
 
-.PHONY: metallb-test
-metallb-test: ## Test Metal LB layer2 IP pool using a nginx pod
-	@kubectl apply -f manifests/nginx-testing.resources.yaml > /dev/null
-	@kubectl -n $(TESTING_NAMESPACE) wait deployment/nginx-deployment --for=condition=Available > /dev/null
-	@curl http://$$(kubectl -n testing get svc -o json | jq -r ".items[0].status.loadBalancer.ingress[0].ip"):8080 \
-		| fgrep -q "Welcome to nginx" && echo "MeltalLB L2 stack is working"
-	@kubectl delete -f manifests/nginx-testing.resources.yaml > /dev/null
+manifests/opensearch-operator.yaml:
+	helm template opensearch-operator opensearch-operator/opensearch-operator > manifests/opensearch-operator.yaml
+	patch -p1 manifests/opensearch-operator.yaml < patchs/opensearch-operator.patch
+
+.PHONY: opensearch
+opensearch-operator: manifests/opensearch-operator.yaml
+	kubectl apply -f manifests/opensearch.namespace.yaml
+	kubectl apply -n $(OPENSEARCH_NAMESPACE) -f manifests/opensearch-operator.yaml
 
 ##############################################################################
 # Help
