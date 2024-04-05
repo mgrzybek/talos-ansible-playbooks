@@ -14,3 +14,7 @@ schematic.json
 mayastor.resources.yaml
 metallb-native.yaml
 *.clusterctl.yaml
+opensearch-operator.yaml
+
+# MacOS
+.DS_Store
