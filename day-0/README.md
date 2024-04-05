@@ -11,9 +11,9 @@
 ## Create the ISO image
 
 Depending on your needs, you might customise the ISO image used to start and install the nodes.
-The current YAML file adds gVisor and ZFS support.
+The current YAML file adds gVisor support.
 
-1. Edit `base-metal.yaml` to add custom options to the ISO image.
+1. Edit `bare-metal.yaml` to add custom options to the ISO image.
 2. Create the right ISO image using the Talos Factory
 
 ```console
