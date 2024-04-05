@@ -1,4 +1,16 @@
----
-- op: replace
-  path: /machine/install/disk
-  value: /dev/vda
+cluster:
+  discovery:
+    enabled: false
+  network:
+    cni:
+      name: none
+  proxy:
+    disabled: true
+machine:
+  install:
+    disk: /dev/vda
+    wipe: true
+  features:
+    kubePrism:
+      enabled: true
+      port: 7445

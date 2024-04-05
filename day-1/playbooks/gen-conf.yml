@@ -18,6 +18,49 @@
     stat:
       path: ../controlplane.yaml
 
+  - name: Create Cilium manifest
+    run_once: true
+    delegate_to: localhost
+    ansible.builtin.command: helm repo add cilium https://helm.cilium.io/
+
+  - name: Create Cilium manifest
+    run_once: true
+    delegate_to: localhost
+    register: result
+    changed_when: false
+    ansible.builtin.command: |
+      helm template \
+        cilium \
+        cilium/cilium \
+        --version 1.14.0 \
+        --namespace kube-system \
+        --set ipam.mode=kubernetes \
+        --set=kubeProxyReplacement=true \
+        --set=securityContext.capabilities.ciliumAgent="{CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID}" \
+        --set=securityContext.capabilities.cleanCiliumState="{NET_ADMIN,SYS_ADMIN,SYS_RESOURCE}" \
+        --set=cgroup.autoMount.enabled=false \
+        --set=cgroup.hostRoot=/sys/fs/cgroup \
+        --set=k8sServiceHost=localhost \
+        --set=k8sServicePort=7445
+
+  - name: Create cilium patch
+    set_fact:
+      cilium:
+        cluster:
+          inlineManifests:
+          - name: cilium
+            contents: |
+              {% for line in result.stdout_lines %}
+              {{ line }}
+              {% endfor %}
+
+  - name: Write cilium patch
+    run_once: true
+    delegate_to: localhost
+    ansible.builtin.copy:
+      content: "{{ cilium | to_yaml }}"
+      dest: ../patchs/controlplane.yaml
+
   - name: Configuration generation | Create talos configuration for the cluster (talosconfig, worker.yaml, controlplane.yaml)
     when: controlplane.stat.exists == false
     run_once: true
@@ -25,4 +68,5 @@
     ansible.builtin.command: |
       talosctl gen config {{ cluster_name }} https://{{ inventory_hostname }}:6443 \
       --config-patch @../patchs/all.yaml \
+      --config-patch-control-plane @../patchs/controlplane.yaml \
       -o ../..
