@@ -3,4 +3,3 @@ customization:
   systemExtensions:
     officialExtensions:
     - siderolabs/gvisor
-    - siderolabs/zfs
