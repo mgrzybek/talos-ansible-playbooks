@@ -14,8 +14,6 @@ ANSIBLE_OPTS=-i ../inventory.ini \
 
 ANSIBLE_PLAYBOOK=ansible-playbook $(ANSIBLE_OPTS)
 
-TESTING_NAMESPACE=$(shell yq ".metadata.namespace" manifests/nginx-testing-metallb.resources.yaml | tail -n1)
-
 SIDERO_CONTROLLER_MANAGER_HOST_NETWORK=false
 ifndef SIDERO_CONTROLLER_MANAGER_DEPLOYMENT_STRATEGY ## Sidero deployment strategy
 	SIDERO_CONTROLLER_MANAGER_DEPLOYMENT_STRATEGY=Recreate
@@ -101,18 +99,6 @@ sidero-metal: manifests/bootstrap.clusterctl.yaml manifests/controlplane.cluster
 		-e ipaddr_pool_name=$(METALLB_L2_IPADDR_POOL_NAME) \
 		-e api_endpoint_ipaddr=$(SIDERO_CONTROLLER_MANAGER_API_ENDPOINT) \
 		-e siderolink_endpoint_ipaddr=$(SIDERO_CONTROLLER_MANAGER_SIDEROLINK_ENDPOINT)
-
-##############################################################################
-# Observability targets
-
-manifests/opensearch-operator.yaml:
-	helm template opensearch-operator opensearch-operator/opensearch-operator > manifests/opensearch-operator.yaml
-	patch -p1 manifests/opensearch-operator.yaml < patchs/opensearch-operator.patch
-
-.PHONY: opensearch
-opensearch-operator: manifests/opensearch-operator.yaml
-	kubectl apply -f manifests/opensearch.namespace.yaml
-	kubectl apply -n $(OPENSEARCH_NAMESPACE) -f manifests/opensearch-operator.yaml
 
 ##############################################################################
 # Help
