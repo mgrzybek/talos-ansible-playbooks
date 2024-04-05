@@ -1,0 +1,22 @@
+---
+
+- hosts: controlplane
+  gather_facts: no
+  become: false
+  serial: 1
+  tasks:
+  - name: check kubernetes version
+    assert:
+      fail_msg: kubernetes_version must be defined
+      that:
+      - kubernetes_version is defined
+      - kubernetes_version | length > 3
+
+  - name: Upgrading k8s | Setting facts
+    set_fact:
+      talosctl_opts: --insecure --talosconfig ../../talosconfig  -n {{ inventory_hostname }}
+
+  - name: Upgrade k8s | Starting the upgrade
+    delegate_to: localhost
+    run_once: true
+    ansible.builtin.command: talosctl {{ talosctl_opts }} upgrade-k8s --to {{ kubernetes_version }}

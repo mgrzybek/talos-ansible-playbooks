@@ -1,0 +1,63 @@
+---
+
+- hosts: controlplane
+  gather_facts: no
+  become: false
+  serial: 1
+  tasks:
+  - name: Adding new nodes | Get cluster members
+    changed_when: false
+    delegate_to: localhost
+    register: result
+    ansible.builtin.shell: kubectl get nodes -o wide | awk '{print $6}'
+
+  - name: Adding new nodes | Setting facts
+    set_fact:
+      talosctl_opts: --insecure --talosconfig ../../talosconfig  -n {{ inventory_hostname }}
+      nodes: "{{ result.stdout_lines | to_yaml }}"
+
+  - name: Adding new nodes | Configuring the new node
+    when: not inventory_hostname in nodes
+    delegate_to: localhost
+    ansible.builtin.command: talosctl apply-config {{ talosctl_opts }} --file ../../controlplane.yaml
+
+  - name: Adding new nodes | Waiting for the node to be available
+    when: not inventory_hostname in nodes
+    until: inventory_hostname in result.stdout_lines
+    delegate_to: localhost
+    register: result
+    retries: 30
+    delay: 60
+    changed_when: false
+    ansible.builtin.shell: kubectl get nodes -o wide | awk '{print $6}'
+
+- hosts: worker
+  gather_facts: no
+  become: false
+  serial: 1
+  tasks:
+  - name: Adding new nodes | Get cluster members
+    changed_when: false
+    register: result
+    delegate_to: localhost
+    ansible.builtin.shell: kubectl get nodes -o wide | awk '{print $6}'
+
+  - name: Adding new nodes | Setting facts
+    set_fact:
+      talosctl_opts: --insecure --talosconfig ../../talosconfig  -n {{ inventory_hostname }}
+      nodes: "{{ result.stdout_lines | to_yaml }}"
+
+  - name: Adding new nodes | Configuring the new node
+    when: not inventory_hostname in nodes
+    delegate_to: localhost
+    ansible.builtin.command: talosctl apply-config {{ talosctl_opts }} --file ../../worker.yaml
+
+  - name: Adding new nodes | Waiting for the node to be available
+    when: not inventory_hostname in nodes
+    until: inventory_hostname in result.stdout_lines
+    delegate_to: localhost
+    register: result
+    retries: 30
+    delay: 60
+    changed_when: false
+    ansible.builtin.shell: kubectl get nodes -o wide | awk '{print $6}'

@@ -19,3 +19,4 @@ These are a set of playbooks used to operate Talos Linux clusters: day-0, day-1,
 
 - [Day-0](./day-0/README.md): set prerequisites to deploy a cluster.
 - [Day-1](./day-1/README.md): create configurations and deploy a cluster.
+- [Day-2](./day-2/README.md): add nodes, upgrade or destroy resources.
