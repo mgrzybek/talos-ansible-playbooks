@@ -33,6 +33,11 @@ add-nodes: ## Add new nodes to the cluster
 upgrade-k8s: ## Upgrade k8s to the given version (KUBERNETES_VERSION)
 	$(ANSIBLE_PLAYBOOK) playbooks/upgrade-k8s.yml -e kubernetes_version=$(KUBERNETES_VERSION)
 
+.PHONY: upgrade-cilium
+upgrade-cilium: ## Upgrade cilium cni to the given vension (CILIUM_VERSION)
+	which cilium
+	$(ANSIBLE_PLAYBOOK) playbooks/add-nodes.yml -e cilium_version=$(CILIUM_VERSION)
+
 ##############################################################################
 # Removing services
 

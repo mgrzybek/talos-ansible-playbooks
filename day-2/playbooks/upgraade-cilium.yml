@@ -1,0 +1,70 @@
+---
+
+- hosts: controlplane
+  gather_facts: no
+  become: false
+  serial: 1
+  tasks:
+  - name: Upgrading Cilium | Check cilium version as argument
+    assert:
+      fail_msg: cilium_version must be defined
+      that:
+      - cilium_version is defined
+      - cilium_version | length > 3
+
+  - name: Upgrading Cilium | Get current version
+    run_once: true
+    delegate_to: localhost
+    register: result
+    ansible.builtin.command: |
+      kubectl get deploy -n kube-system  cilium-operator -o yaml \
+        | yq ".spec.template.spec.containers[0].image" \
+        | awk -F: '{gsub("v", "") ; gsub("@.+?","") ; print $2}'
+    
+  - name: Upgrading Cilium | Setting facts
+    set_fact:
+      current_version: "{{ result.stdout }}"
+  
+  - name: Upgrading Cilium | Check versions
+    assert:
+      that: cilium_version > current_version
+      fail_msg: The new version shpuld be higher than the current one
+
+  - name: Upgrading Cilium | Create Cilium manifest
+    run_once: true
+    delegate_to: localhost
+    register: result
+    changed_when: false
+    ansible.builtin.command: |
+      helm template \
+        cilium \
+        cilium/cilium \
+        --version {{ cilium_version }} \
+        --namespace kube-system \
+        --set ipam.mode=kubernetes \
+        --set kubeProxyReplacement=true \
+        --set securityContext.capabilities.ciliumAgent="{CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID}" \
+        --set securityContext.capabilities.cleanCiliumState="{NET_ADMIN,SYS_ADMIN,SYS_RESOURCE}" \
+        --set cgroup.autoMount.enabled=false \
+        --set cgroup.hostRoot=/sys/fs/cgroup \
+        --set k8sServiceHost=localhost \
+        --set k8sServicePort=7445 \
+        --set l2announcements.enabled=true \
+        --set l2announcements.leaseDuration=3s \
+        --set l2announcements.leaseRenewDeadline=1s \
+        --set l2announcements.leaseRetryPeriod=500ms \
+        --set k8sServiceHost=localhost \
+        --set k8sClientRateLimit.qps=2 \
+        --set k8sClientRateLimit.burst=5
+
+  - name: Upgrading Cilium | Apply the manifest
+    delegate_to: localhost
+    run_once: true
+    kubernetes.core.k8s:
+      state: present
+      definition: "{{ result.stdout | from_yaml }}"
+ 
+  - name: Upgrading Cilium | Waiting for the CNI to be ready
+    delegate_to: localhost
+    run_once: true
+    ansible.builtin.command: cilium status --wait
