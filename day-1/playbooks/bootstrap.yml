@@ -25,12 +25,24 @@
 
   - name: Bootstrap | Wait for the node to be ready
     until: health is success
-    retries: 5
-    delay: 120
+    retries: 20
+    delay: 30
+    run_once: true
     register: health
     delegate_to: localhost
     changed_when: false
     ansible.builtin.command:  talosctl {{ talosctl_opts }} health
+
+#  # This can be used instead of tolas health. It’s faster but gives less details
+#  - name: Bootstrap | Wait for the node controlplane to be ready
+#    untel: ready is success
+#    retries: 20
+#    delay: 30
+#    run_once: true
+#    register: ready
+#    delegate_to: localhost
+#    changed_when: false
+#    ansible.builtin.command: kubectl get nodes -o wide | fgrep -v NotReady
 
   - name: Bootstrap | Get kubernetes configuration
     run_once: true

@@ -8,6 +8,7 @@ You should select the right disk to install the system. By default `/dev/vda` is
 
 ```console
 $ export CLUSTER_NAME=my-cluster # Choose cluster name
+$ export CILIUM_VERSION=1.15.1 # This is the default version
 $ make cluster-create
 ```
 

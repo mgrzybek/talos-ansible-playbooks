@@ -8,8 +8,13 @@ ifdef VERBOSE
 	VERBOSE_OPTS=-vvv
 endif
 
+ifndef CILIUM_VERSION
+	CILIUM_VERSION=1.15.1
+endif
+
 ANSIBLE_OPTS=-i ../inventory.ini \
 	-e cluster_name=$(CLUSTER_NAME) \
+	-e cilium_version=$(CILIUM_VERSION) \
 	$(LIMIT_OPTS) $(VERBOSE_OPTS)
 
 ANSIBLE_PLAYBOOK=ansible-playbook $(ANSIBLE_OPTS)
@@ -64,8 +69,9 @@ cluster-shutdown: ## Stop the nodes but keep the current configuration
 .PHONY: cluster-cneate
 cluster-create: ## Create a cluster
 	@$(MAKE) ../controlplane.yaml
-	@$(MAKE) apply-conf
+	@$(MAKE) apply-conf LIMIT=controlplane
 	@$(MAKE) bootstrap
+	@$(MAKE) apply-conf LIMIT=worker
 
 ##############################################################################
 # Rook Ceph targets
@@ -75,7 +81,7 @@ rook-ceph-operator: ## Install Rook operator for Ceph
 	kubectl apply -f manifests/rook.common.yaml
 	kubectl patch namespace rook-ceph -p '{ "metadata": { "labels": { "pod-security.kubernetes.io/enforce": "privileged" } } }'
 	kubectl apply -f manifests/rook.crds.yaml  -f manifests/rook.operator.yaml
-	kubectl -n rook-ceph wait deployment/rook-ceph-operator --for=condition=Available > /dev/null
+	kubectl -n rook-ceph wait deployment/rook-ceph-operator --for=condition=Available  --timeout=1h > /dev/null
 
 .PHONY: rook-ceph-cluster
 rook-ceph-cluster: rook-ceph-operator

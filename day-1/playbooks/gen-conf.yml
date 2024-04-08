@@ -6,10 +6,12 @@
   tasks:
   - name: Configuration generation | Assert variables
     assert: 
-      fail_msg: cluster_name variable must be defined
+      fail_msg: cluster_name and cilium_version variables must be defined
       that:
       - cluster_name is defined
       - cluster_name | length > 0
+      - cilium_version is defined
+      - cilium_version | length > 3
 
   - name: Configuration generation | Check actual configuration
     run_once: true
@@ -23,7 +25,10 @@
     delegate_to: localhost
     ansible.builtin.command: helm repo add cilium https://helm.cilium.io/
 
-  - name: Create Cilium manifest
+  # Cilium and L2 announcements: https://docs.cilium.io/en/latest/network/l2-announcements/
+  # k8sClientRateLimit.qps and k8sClientRateLimit.burst should be tuned according to the size of the deployment
+  # KubePrism is used (localhost:7445)
+  - name: Configuration generation | Create Cilium manifest
     run_once: true
     delegate_to: localhost
     register: result
@@ -32,18 +37,25 @@
       helm template \
         cilium \
         cilium/cilium \
-        --version 1.14.0 \
+        --version {{ cilium_version }} \
         --namespace kube-system \
         --set ipam.mode=kubernetes \
-        --set=kubeProxyReplacement=true \
-        --set=securityContext.capabilities.ciliumAgent="{CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID}" \
-        --set=securityContext.capabilities.cleanCiliumState="{NET_ADMIN,SYS_ADMIN,SYS_RESOURCE}" \
-        --set=cgroup.autoMount.enabled=false \
-        --set=cgroup.hostRoot=/sys/fs/cgroup \
-        --set=k8sServiceHost=localhost \
-        --set=k8sServicePort=7445
+        --set kubeProxyReplacement=true \
+        --set securityContext.capabilities.ciliumAgent="{CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID}" \
+        --set securityContext.capabilities.cleanCiliumState="{NET_ADMIN,SYS_ADMIN,SYS_RESOURCE}" \
+        --set cgroup.autoMount.enabled=false \
+        --set cgroup.hostRoot=/sys/fs/cgroup \
+        --set k8sServiceHost=localhost \
+        --set k8sServicePort=7445 \
+        --set l2announcements.enabled=true \
+        --set l2announcements.leaseDuration=3s \
+        --set l2announcements.leaseRenewDeadline=1s \
+        --set l2announcements.leaseRetryPeriod=500ms \
+        --set k8sClientRateLimit.qps=2 \
+        --set k8sClientRateLimit.burst=5
 
-  - name: Create cilium patch
+  - name: Configuration generation | Create Cilium patch
+    run_once: true
     set_fact:
       cilium:
         cluster:
@@ -54,7 +66,7 @@
               {{ line }}
               {% endfor %}
 
-  - name: Write cilium patch
+  - name: Configuration generation | Write Cilium patch
     run_once: true
     delegate_to: localhost
     ansible.builtin.copy:

@@ -16,8 +16,10 @@
   - name: Pause for 5 minutes to let the machine download the images
     when: ansible_play_hosts | length > 1
     ansible.builtin.pause:
-      prompt: 
       minutes: 5
+      prompt: |
+        Wait 5 minutes between nodes to let them install.
+        This is useful when nodes are slow to reboot or in case of a bad internet connectivity.
 
 - hosts: worker
   gather_facts: no
@@ -36,3 +38,6 @@
     when: ansible_play_hosts | length > 1
     ansible.builtin.pause:
       minutes: 5
+      prompt: |
+        Wait 5 minutes between nodes to let them install.
+        This is useful when nodes are slow to reboot or in case of a bad internet connectivity.
