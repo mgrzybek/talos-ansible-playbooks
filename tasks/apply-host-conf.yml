@@ -1,0 +1,34 @@
+- name: Check if a custom file exists
+  delegate_to: localhost
+  register: result
+  ansible.builtin.stat:
+    path: "{{ inventory_dir }}/{{ inventory_hostname }}.host.yaml"
+
+- name: Adding new nodes | Set facts
+  set_fact:
+    manifest: "{{ inventory_dir }}/{% if result.stat.exists %}{{ inventory_hostname }}.host.yaml{% else %}{{ generic_machineconfig }}{% endif %}"
+    talosctl_opts: --insecure --talosconfig {{ inventory_dir }}/talosconfig  -n {{ inventory_hostname }}
+
+- name: Adding new nodes | Applying the configuration to the new node
+  delegate_to: localhost
+  ansible.builtin.command: talosctl apply-config {{ talosctl_opts }} --file {{ manifest }}
+
+- name: Pause for 5 minutes to let the machine download the images
+  when: ansible_play_hosts | length > 1
+  ansible.builtin.pause:
+    minutes: 5
+    prompt: |
+      Wait 5 minutes between nodes to let them install.
+      This is useful when nodes are slow to reboot or in case of a bad internet connectivity.
+
+- name: Adding new nodes | Waiting for the node to be available
+  when:
+  - adding_node is defined
+  - adding_node is true
+  delegate_to: localhost
+  until: inventory_hostname in result.stdout_lines
+  register: result
+  retries: 30
+  delay: 60
+  changed_when: false
+  ansible.builtin.shell: kubectl get nodes -o wide | awk '{print $6}'

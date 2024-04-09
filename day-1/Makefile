@@ -60,7 +60,7 @@ health:
 .PHONY: cluster-reset
 cluster-reset: ## Reset the cluster (nodes are wiped, kubectl context removed)
 	$(ANSIBLE_PLAYBOOK) playbooks/reset.yml
-	rm -f ../talosconfig ../worker.yaml ../controlplane.yaml
+	rm -f ../talosconfig ../worker.yaml ../controlplane.yaml ../*.host.yaml
 
 .PHONY: cluster-shutdown
 cluster-shutdown: ## Stop the nodes but keep the current configuration
@@ -84,8 +84,9 @@ rook-ceph-operator: ## Install Rook operator for Ceph
 	kubectl -n rook-ceph wait deployment/rook-ceph-operator --for=condition=Available  --timeout=1h > /dev/null
 
 .PHONY: rook-ceph-cluster
-rook-ceph-cluster: rook-ceph-operator
+rook-ceph-cluster: rook-ceph-operator ## Deploy a ceph cluster
 	kubectl apply -f manifests/rook.cluster.yaml
+	$(ANSIBLE_PLAYBOOK) playbooks/ceph-wait.yml
 
 ##############################################################################
 # Metal-as-a-Service targets
@@ -102,7 +103,6 @@ manifests/infrastructure.clusterctl.yaml:
 .PHONY: sidero-metal
 sidero-metal: manifests/bootstrap.clusterctl.yaml manifests/controlplane.clusterctl.yaml manifests/infrastructure.clusterctl.yaml ## Install the sidero deployment stack
 	$(ANSIBLE_PLAYBOOK) playbooks/sidero-metal.yml \
-		-e ipaddr_pool_name=$(METALLB_L2_IPADDR_POOL_NAME) \
 		-e api_endpoint_ipaddr=$(SIDERO_CONTROLLER_MANAGER_API_ENDPOINT) \
 		-e siderolink_endpoint_ipaddr=$(SIDERO_CONTROLLER_MANAGER_SIDEROLINK_ENDPOINT)
 

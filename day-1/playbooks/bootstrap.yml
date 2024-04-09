@@ -3,6 +3,7 @@
 - hosts: controlplane
   gather_facts: no
   become: false
+  run_once: true
   tasks:
   - name: Bootstrap | Set facts
     set_fact:
@@ -12,7 +13,6 @@
     until: bootstrap is success
     delay: 120
     retries: 10
-    run_once: true
     register: bootstrap
     delegate_to: localhost
     ansible.builtin.command: talosctl {{ talosctl_opts }} bootstrap
@@ -27,7 +27,6 @@
     until: health is success
     retries: 20
     delay: 30
-    run_once: true
     register: health
     delegate_to: localhost
     changed_when: false
@@ -45,6 +44,5 @@
 #    ansible.builtin.command: kubectl get nodes -o wide | fgrep -v NotReady
 
   - name: Bootstrap | Get kubernetes configuration
-    run_once: true
     delegate_to: localhost
     ansible.builtin.command: talosctl {{ talosctl_opts }} kubeconfig

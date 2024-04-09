@@ -2,6 +2,7 @@
 controlplane.yaml
 worker.yaml
 talosconfig
+*.host.yaml
 
 # Factory data
 schematic.json

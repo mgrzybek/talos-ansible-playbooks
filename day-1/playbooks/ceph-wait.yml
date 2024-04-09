@@ -1,0 +1,16 @@
+---
+
+- hosts: all
+  gather_facts: no
+  become: false
+  run_once: true
+  tasks:
+  - name: Ceph | Wait for the cluster to be started (5 minutes per host * number of hosts)
+    until: (bootstrap.stdout | from_yaml).status.phase == "Ready"
+    delay: 300
+    retries: "{{ ansible_play_hosts | length }}"
+    register: bootstrap
+    delegate_to: localhost
+    ansible.builtin.command: kubectl -n rook-ceph get CephCluster rook-ceph -o yaml 
+    failed_when: false
+    changed_when: false

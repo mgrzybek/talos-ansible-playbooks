@@ -1,8 +1,12 @@
 ---
 
+###############################################################################
+# All
+
 - hosts: all
   gather_facts: no
   become: false
+  run_once: true
   tasks:
   - name: Configuration generation | Assert variables
     assert: 
@@ -14,22 +18,20 @@
       - cilium_version | length > 3
 
   - name: Configuration generation | Check actual configuration
-    run_once: true
     register: controlplane
     delegate_to: localhost
     stat:
       path: ../controlplane.yaml
 
-  - name: Create Cilium manifest
-    run_once: true
+  - name: Configuration generation | Add Cilium Helm repo
     delegate_to: localhost
     ansible.builtin.command: helm repo add cilium https://helm.cilium.io/
 
   # Cilium and L2 announcements: https://docs.cilium.io/en/latest/network/l2-announcements/
   # k8sClientRateLimit.qps and k8sClientRateLimit.burst should be tuned according to the size of the deployment
   # KubePrism is used (localhost:7445)
+  # TODO: check if we need to add devices using options
   - name: Configuration generation | Create Cilium manifest
-    run_once: true
     delegate_to: localhost
     register: result
     changed_when: false
@@ -54,8 +56,7 @@
         --set k8sClientRateLimit.qps=2 \
         --set k8sClientRateLimit.burst=5
 
-  - name: Configuration generation | Create Cilium patch
-    run_once: true
+  - name: Configuration generation | Create cilium patch
     set_fact:
       cilium:
         cluster:
@@ -67,7 +68,6 @@
               {% endfor %}
 
   - name: Configuration generation | Write Cilium patch
-    run_once: true
     delegate_to: localhost
     ansible.builtin.copy:
       content: "{{ cilium | to_yaml }}"
@@ -75,10 +75,37 @@
 
   - name: Configuration generation | Create talos configuration for the cluster (talosconfig, worker.yaml, controlplane.yaml)
     when: controlplane.stat.exists == false
-    run_once: true
     delegate_to: localhost
     ansible.builtin.command: |
       talosctl gen config {{ cluster_name }} https://{{ inventory_hostname }}:6443 \
-      --config-patch @../patchs/all.yaml \
-      --config-patch-control-plane @../patchs/controlplane.yaml \
-      -o ../..
+        --config-patch @../patchs/all.yaml \
+        --config-patch-control-plane @../patchs/controlplane.yaml \
+        -o ../..
+
+###############################################################################
+# Controlplane
+
+- hosts: controlplane
+  gather_facts: no
+  become: false
+
+  vars:
+    generic_machineconfig: controlplane.yaml
+
+  tasks:
+  - name: Configuration generation | Import tasks
+    include_tasks: "{{ inventory_dir }}/tasks/gen-host-conf.yml"
+
+###############################################################################
+# Worker
+
+- hosts: worker
+  gather_facts: no
+  become: false
+
+  vars:
+    generic_machineconfig: worker.yaml
+
+  tasks:
+  - name: Configuration generation | Import tasks
+    include_tasks: "{{ inventory_dir }}/tasks/gen-host-conf.yml"

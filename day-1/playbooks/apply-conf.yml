@@ -1,43 +1,31 @@
 ---
 
+###############################################################################
+# Controlplane
+
 - hosts: controlplane
   gather_facts: no
   become: false
   serial: 1
+
+  vars:
+    generic_machineconfig: controlplane.yaml
+
   tasks:
-  - name: Applying machines’ configuration | Setting facts
-    set_fact:
-      talosctl_opts: --insecure --talosconfig ../../talosconfig  -n {{ inventory_hostname }}
+  - name: Applying configuration | _includeing tasks
+    include_tasks: "{{ inventory_dir }}/tasks/apply-host-conf.yml"
 
-  - name: Applying machines’ configuration | Controlplane
-    delegate_to: localhost
-    ansible.builtin.command: talosctl apply-config {{ talosctl_opts }} --file ../../controlplane.yaml
-
-  - name: Pause for 5 minutes to let the machine download the images
-    when: ansible_play_hosts | length > 1
-    ansible.builtin.pause:
-      minutes: 5
-      prompt: |
-        Wait 5 minutes between nodes to let them install.
-        This is useful when nodes are slow to reboot or in case of a bad internet connectivity.
+###############################################################################
+# Worker
 
 - hosts: worker
   gather_facts: no
   become: false
   serial: 1
+
+  vars:
+    generic_machineconfig: worker.yaml
+
   tasks:
-  - name: Applying machines’ configuration | Setting facts
-    set_fact:
-      talosctl_opts: --insecure --talosconfig ../../talosconfig  -n {{ inventory_hostname }}
-
-  - name: Applying machines’ configuration | Workers
-    delegate_to: localhost
-    ansible.builtin.command: talosctl apply-config {{ talosctl_opts }} --file ../../worker.yaml
-
-  - name: Pause for 5 minutes to let the machine download the images
-    when: ansible_play_hosts | length > 1
-    ansible.builtin.pause:
-      minutes: 5
-      prompt: |
-        Wait 5 minutes between nodes to let them install.
-        This is useful when nodes are slow to reboot or in case of a bad internet connectivity.
+  - name: Applying configuration | _includeing tasks
+    include_tasks: "{{ inventory_dir }}/tasks/apply-host-conf.yml"
