@@ -80,13 +80,14 @@ cluster-create: ## Create a cluster
 rook-ceph-operator: ## Install Rook operator for Ceph
 	kubectl apply -f manifests/rook.common.yaml
 	kubectl patch namespace rook-ceph -p '{ "metadata": { "labels": { "pod-security.kubernetes.io/enforce": "privileged" } } }'
-	kubectl apply -f manifests/rook.crds.yaml  -f manifests/rook.operator.yaml
+	kubectl apply -f manifests/rook.crds.yaml -f manifests/rook.operator.yaml
 	kubectl -n rook-ceph wait deployment/rook-ceph-operator --for=condition=Available  --timeout=1h > /dev/null
 
 .PHONY: rook-ceph-cluster
 rook-ceph-cluster: rook-ceph-operator ## Deploy a ceph cluster
 	kubectl apply -f manifests/rook.cluster.yaml
 	$(ANSIBLE_PLAYBOOK) playbooks/ceph-wait.yml
+	kubectl apply -f manifests/rook.pool.yaml
 
 ##############################################################################
 # Metal-as-a-Service targets
