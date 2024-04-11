@@ -101,7 +101,7 @@ spec:
 
 ### Cilium L2 LoadBalancer
 
-Cilium will used L2 announcements to publish service, such as Ceph WebGUI. Moreover, [the documentation about L2 explians how to size the client rate limit](https://docs.cilium.io/en/latest/network/l2-announcements/#sizing-client-rate-limit)
+Cilium will used L2 announcements to publish service, such as Ceph WebGUI. The documentation about [LB IPAM](https://docs.cilium.io/en/stable/network/lb-ipam/) might be useful. Moreover, [the documentation about L2 explians how to size the client rate limit](https://docs.cilium.io/en/latest/network/l2-announcements/#sizing-client-rate-limit).
 
 ```yaml
 # group_vars/controlplane.yml
@@ -111,12 +111,7 @@ cilium:
   version: "1.15.1"
   l2:
     blocks: # Let’s declare 6 IP addresses
-    - cidr: "192.168.70.130/25"
-    - cidr: "192.168.70.131/25"
-    - cidr: "192.168.70.132/25"
-    - cidr: "192.168.70.133/25"
-    - cidr: "192.168.70.134/25"
-    - cidr: "192.168.70.135/25"
+    - cidr: "192.168.70.128/25"
     announcements:
       lease:
         duration: 3s        # Tuning needed
@@ -127,5 +122,5 @@ cilium:
     burst: 5 # Tuning needed
 
 ceph:
-  manager_endpoint_cidr: "192.168.70.130/25" # This address is part of cilium.l2.blocks
+  manager_endpoint_cidr: "192.168.70.130" # This address is part of cilium.l2.blocks
 ```

@@ -6,12 +6,7 @@ cilium:
   version: 1.15.1
   l2:
     blocks:
-    - cidr: "192.168.70.130/25"
-    - cidr: "192.168.70.131/25"
-    - cidr: "192.168.70.132/25"
-    - cidr: "192.168.70.133/25"
-    - cidr: "192.168.70.134/25"
-    - cidr: "192.168.70.135/25"
+    - cidr: "192.168.70.128/25"
     announcements:
       lease:
         duration: 3s
@@ -22,4 +17,4 @@ cilium:
     burst: 5
 
 ceph:
-  manager_endpoint_cidr: 192.168.70.130/25 # This address is part of cilium.l2.blocks
+  manager_endpoint_cidr: 192.168.70.130 # This address is part of cilium.l2.blocks
