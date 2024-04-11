@@ -56,3 +56,15 @@
             interfaces: []
             externalIPs: true
             loadBalancerIPs: true
+
+    - name: Cilium L2 | Get conflicting IPs
+      delegate_to: localhost
+      register: result
+      changed_when: false
+      ansible.builtin.shell: kubectl get CiliumLoadBalancerIPPool core-pool-l2 | awk '{print $3}'
+     
+    - name: Cilium L2 | Check conficting IPs
+      assert:
+        fail_msg: Conflicting IPs have been found, please run `kubectl get CiliumLoadBalancerIPPool core-pool-l2 -o yaml | yq .status.conditions`
+        that:
+        - not "True" in result.stdout_lines
