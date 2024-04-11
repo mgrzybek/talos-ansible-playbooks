@@ -7,7 +7,7 @@
   tasks:
   - name: Bootstrap | Set facts
     set_fact:
-      talosctl_opts: --nodes {{ inventory_hostname }} --endpoints {{ inventory_hostname }} --talosconfig=../../talosconfig
+      talosctl_opts: --nodes {{ inventory_hostname }} --endpoints {{ inventory_hostname }} --talosconfig={{ inventory_dir }}/talosconfig
 
   - name: Bootstrap | Bootstrap talos controlplane (bootstrap of one etcd instance)
     until: bootstrap is success
@@ -31,17 +31,6 @@
     delegate_to: localhost
     changed_when: false
     ansible.builtin.command:  talosctl {{ talosctl_opts }} health
-
-#  # This can be used instead of tolas health. It’s faster but gives less details
-#  - name: Bootstrap | Wait for the node controlplane to be ready
-#    untel: ready is success
-#    retries: 20
-#    delay: 30
-#    run_once: true
-#    register: ready
-#    delegate_to: localhost
-#    changed_when: false
-#    ansible.builtin.command: kubectl get nodes -o wide | fgrep -v NotReady
 
   - name: Bootstrap | Get kubernetes configuration
     delegate_to: localhost

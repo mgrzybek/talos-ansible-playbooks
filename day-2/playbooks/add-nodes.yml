@@ -1,16 +1,12 @@
 ---
 
-###############################################################################
-# Controlplane
-
-- hosts: controlplane
+- hosts: all
   gather_facts: no
   become: false
   serial: 1
 
   vars:
     adding_node: true
-    generic_machineconfig: controlplane.yaml
 
   tasks:
   - name: Adding new nodes | Get cluster members
@@ -31,35 +27,3 @@
 
     - name: Adding new nodes | Applying configuration
       include_tasks: "{{ inventory_dir }}tasks/apply-host-conf.yml"
-
-###############################################################################
-# Worker
-
-- hosts: worker
-  gather_facts: no
-  become: false
-  serial: 1
-
-  vars:
-    adding_node: true
-    generic_machineconfig: worker.yaml
-
-  tasks:
-  - name: Adding new nodes | Get cluster members
-    changed_when: false
-    delegate_to: localhost
-    register: members
-    ansible.builtin.shell: kubectl get nodes -o wide | awk '{print $6}'
-
-  - name: Adding new nodes | Setting facts
-    set_fact:
-      nodes: "{{ members.stdout_lines | to_yaml }}"
-
-  - name: Adding new nodes | Configuring if not a member yet
-    when: not inventory_hostname in nodes
-    block:
-    - name: Adding new nodes | Configuring the new node
-      include_tasks: "{{ inventory_dir }}/tasks/gen-host-conf.yml"
-
-    - name: Adding new nodes | Applying configuration
-      include_tasks: "{{ inventory_dir }}/tasks/apply-host-conf.yml"

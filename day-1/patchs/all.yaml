@@ -8,7 +8,6 @@ cluster:
     disabled: true
 machine:
   install:
-    disk: /dev/vda
     wipe: true
   features:
     kubePrism:

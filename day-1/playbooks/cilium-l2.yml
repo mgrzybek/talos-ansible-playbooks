@@ -1,0 +1,58 @@
+---
+
+- hosts: controlplane
+  gather_facts: no
+  become: false
+  run_once: true
+  tasks:
+  - name: Cilium L2 | Create the resources
+    when:
+    - cilium.l2 is defined
+    - cilium.l2.blocks is defined
+    block:
+    - name: Cilium L2 | Check the required variables
+      assert:
+        fail_msg: cilium_l2_blocks must contain at least one value
+        that:
+        - cilium.l2.blocks is iterable
+        - cilium.l2.blocks | length > 0
+
+    - name: Cilium L2 | Create CiliumLoadBalancerIPPool
+      delegate_to: localhost
+      kubernetes.core.k8s:
+        wait: true
+        state: present
+        definition:
+          apiVersion: "cilium.io/v2alpha1"
+          kind: CiliumLoadBalancerIPPool
+          metadata:
+            name: "core-pool-l2"
+            namespace: kube-system
+          spec:
+            blocks: "{{ cilium.l2.blocks }}"
+            serviceSelector:
+              matchLabels:
+                "serviceType": "core"
+
+    - name: Cilium L2 | Create CiliumL2AnnouncementPolicy
+      delegate_to: localhost
+      kubernetes.core.k8s:
+        wait: true
+        state: present
+        definition:
+          apiVersion: "cilium.io/v2alpha1"
+          kind: CiliumL2AnnouncementPolicy
+          metadata:
+            name: core-services
+            namespace: kube-system
+          spec:
+            serviceSelector:
+              matchLabels:
+                serviceType: core
+            nodeSelector:
+              matchExpressions:
+                - key: node-role.kubernetes.io/control-plane
+                  operator: DoesNotExist
+            interfaces: []
+            externalIPs: true
+            loadBalancerIPs: true

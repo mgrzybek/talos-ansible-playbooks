@@ -13,7 +13,7 @@
 
   - name: Reset | Set facts
     set_fact:
-      talosctl_opts: --nodes {{ inventory_hostname }} --endpoints {{ inventory_hostname }} --talosconfig=../../talosconfig
+      talosctl_opts: --nodes {{ inventory_hostname }} --endpoints {{ inventory_hostname }} --talosconfig={{ inventory_dir }}/talosconfig
 
   - name: Reset | Reset the node and reboot to a non-configured state
     delegate_to: localhost

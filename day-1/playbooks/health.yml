@@ -6,13 +6,13 @@
   tasks:
   - name: Health | Set facts
     set_fact:
-      talosctl_opts: --nodes {{ inventory_hostname }} --endpoints {{ inventory_hostname }} --talosconfig=../../talosconfig
+      talosctl_opts: --nodes {{ inventory_hostname }} --endpoints {{ inventory_hostname }} --talosconfig={{ inventory_dir }}/talosconfig
 
   - name: Health | Wait for the node to be ready
     until: health is success
-    retries: 5
-    delay: 120
+    retries: 12
+    delay: 10
     register: health
     delegate_to: localhost
     changed_when: false
-    ansible.builtin.command:  talosctl {{ talosctl_opts }} health
+    ansible.builtin.command:  talosctl {{ talosctl_opts }} health --wait-timeout=1m

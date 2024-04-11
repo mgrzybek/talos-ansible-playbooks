@@ -4,18 +4,11 @@ else
 	LIMIT_OPTS=
 endif
 
-ifdef VERBOSE
+ifdef VERBOSE ## Set ansible in verbose mode (bool)
 	VERBOSE_OPTS=-vvv
 endif
 
-ifndef CILIUM_VERSION
-	CILIUM_VERSION=1.15.1
-endif
-
-ANSIBLE_OPTS=-i ../inventory.ini \
-	-e cluster_name=$(CLUSTER_NAME) \
-	-e cilium_version=$(CILIUM_VERSION) \
-	$(LIMIT_OPTS) $(VERBOSE_OPTS)
+ANSIBLE_OPTS=-i ../inventory.ini $(LIMIT_OPTS) $(VERBOSE_OPTS)
 
 ANSIBLE_PLAYBOOK=ansible-playbook $(ANSIBLE_OPTS)
 
@@ -73,6 +66,13 @@ cluster-create: ## Create a cluster
 	@$(MAKE) bootstrap
 	@$(MAKE) apply-conf LIMIT=worker
 
+
+##############################################################################
+# LoadBalancer configuration
+.PHONY: cilium-l2
+cilium-l2: ## Deploy Cilium L2 CiliumLoadBalancerIPPool and CiliumL2AnnouncementPolicy
+	$(ANSIBLE_PLAYBOOK) playbooks/cilium-l2.yml
+
 ##############################################################################
 # Rook Ceph targets
 
@@ -84,10 +84,8 @@ rook-ceph-operator: ## Install Rook operator for Ceph
 	kubectl -n rook-ceph wait deployment/rook-ceph-operator --for=condition=Available  --timeout=1h > /dev/null
 
 .PHONY: rook-ceph-cluster
-rook-ceph-cluster: rook-ceph-operator ## Deploy a ceph cluster
-	kubectl apply -f manifests/rook.cluster.yaml
-	$(ANSIBLE_PLAYBOOK) playbooks/ceph-wait.yml
-	kubectl apply -f manifests/rook.pool.yaml
+rook-ceph-cluster: rook-ceph-operator cilium-l2 ## Deploy a ceph cluster
+	$(ANSIBLE_PLAYBOOK) playbooks/ceph-cluster.yml
 
 ##############################################################################
 # Metal-as-a-Service targets
@@ -106,6 +104,13 @@ sidero-metal: manifests/bootstrap.clusterctl.yaml manifests/controlplane.cluster
 	$(ANSIBLE_PLAYBOOK) playbooks/sidero-metal.yml \
 		-e api_endpoint_ipaddr=$(SIDERO_CONTROLLER_MANAGER_API_ENDPOINT) \
 		-e siderolink_endpoint_ipaddr=$(SIDERO_CONTROLLER_MANAGER_SIDEROLINK_ENDPOINT)
+
+
+##############################################################################
+# Tinkerbell
+
+.PHONY: tinkerbell
+tinkerbell:
 
 ##############################################################################
 # Help

@@ -5,25 +5,10 @@
 - name: Configuration generation | Create host patch
   when: eth1_addr_cidr is defined
   block:
-  - name: Configuration generation | Create host patch
-    set_fact:
-      host_patch:
-        machine:
-          network:
-            interfaces:
-            - dhcp: true
-              deviceSelector:
-                busPath: "0000:00:01.0"
-            - dhcp: false
-              addresses:
-              - "{{ eth1_addr_cidr }}"
-              deviceSelector:
-                busPath: "0000:00:02.0"
-
   - name: Configuration generation | Create the host patch file
     delegate_to: localhost
     ansible.builtin.copy:
-      content: "{{ host_patch }}"
+      content: "{{ machine_patch }}"
       dest: "{{ patch_dir }}/{{ inventory_hostname }}.host.yaml"
   
   - name: Configuration generation | Create talos configuration for each node

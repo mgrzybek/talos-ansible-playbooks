@@ -1,24 +1,40 @@
-TALOS_FACTORY_URL=https://factory.talos.dev/image
-TALOS_VERSION=v1.6.2
+ifndef TALOS_FACTORY_URL ## Talos Factory URL (https://factory.talos.dev/image)
+	TALOS_FACTORY_URL=https://factory.talos.dev/image
+endif
 
-DRAWIO=draw.io --export --embed-svg-images
+ifndef TALOS_VERSION ## Talos version to use (v1.6.2)
+	TALOS_VERSION=v1.6.2
+endif
+
+DRAWIO_BIN=draw.io
+DRAWIO=$(DRAWIO_BIN) --export --embed-svg-images
+
+WHICH=which -s
 
 architecture.drawio:
 workflow.drawio:
 
 schematic.json: ## Get schematic json data from the talos factory
+	$(WHICH) curl
+	$(WHICH) tee
 	curl -X POST --data-binary @bare-metal.yaml $(TALOS_FACTORY_URL)/schematics | tee schematic.json
 
 metal-amd64.iso: schematic.json ## Download amd64 iso from the talos factory
+	$(WHICH) jq
+	$(WHICH) wget
 	wget $(TALOS_FACTORY_URL)/$(shell cat schematic.json | jq -r ".id")/$(TALOS_VERSION)/metal-amd64.iso 
 
 metal-arm64.iso: schematic.json ## Download arm64 iso from the talos factory
+	$(WHICH) jq
+	$(WHICH) wget
 	wget $(TALOS_FACTORY_URL)/$(shell cat schematic.json | jq -r ".id")/$(TALOS_VERSION)/metal-arm64.iso 
 
-architecture.svg: architecture.drawio
+architecture.svg: architecture.drawio ## Create architecture
+	$(WHICH) $(DRAWIO_BIN)
 	$(DRAWIO) --output architecture.svg architecture.drawio
 
-workflow.svg: workflow.drawio
+workflow.svg: workflow.drawio ## Create workflow
+	$(WHICH) $(DRAWIO_BIN)
 	$(DRAWIO) --output workflow.svg workflow.drawio
 
 ##############################################################################
@@ -31,12 +47,12 @@ help: ## This help message
 	@awk \
 		'$$1 ~ /^ifdef/ && $$3 ~ /##/ {gsub(/##/,"\t") ; gsub("ifdef ","") ; print $$0}' \
 		Makefile \
-	| expand -t50 \
+	| expand -t35 \
 	| sort
 	@awk \
 		'$$1 ~ /^ifndef/ && $$3 ~ /##/ {gsub(/##/,"\t") ; gsub("ifndef ","") ; print $$0}' \
 		Makefile \
-	| expand -t50 \
+	| expand -t35 \
 	| sort
 	@echo
 

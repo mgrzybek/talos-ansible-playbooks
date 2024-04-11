@@ -34,13 +34,13 @@ upgrade-k8s: ## Upgrade k8s to the given version (KUBERNETES_VERSION)
 	$(ANSIBLE_PLAYBOOK) playbooks/upgrade-k8s.yml -e kubernetes_version=$(KUBERNETES_VERSION)
 
 .PHONY: upgrade-cilium
-upgrade-cilium: ## Upgrade cilium cni to the given vension (CILIUM_VERSION)
+upgrade-cilium: ## Upgrade cilium cni to the given vension
 	which cilium
-	$(ANSIBLE_PLAYBOOK) playbooks/upgrade-cilium.yml -e cilium_version=$(CILIUM_VERSION)
+	$(ANSIBLE_PLAYBOOK) playbooks/upgrade-cilium.yml
 
 .PHONY: remove-node
 remove-node: ## Remove a node from the cluster (NODE_IP, NODE_NAME)
-	talosctl -n $(NODE_IP) -e $(NODE_IP) reset  --talosconfig=../talosconfig
+	talosctl -n $(NODE_IP) -e $(NODE_IP) reset --talosconfig=../talosconfig
 	kubectl remove node $(NODE_NAME)
 	rm -f ../$(NODE_IP).host.yaml
 

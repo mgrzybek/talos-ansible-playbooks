@@ -14,14 +14,14 @@
       that:
       - cluster_name is defined
       - cluster_name | length > 0
-      - cilium_version is defined
-      - cilium_version | length > 3
+      - cilium.version is defined
+      - cilium.version | length > 3
 
   - name: Configuration generation | Check actual configuration
     register: controlplane
     delegate_to: localhost
     stat:
-      path: ../controlplane.yaml
+      path: "{{ inventory_dir }}/controlplane.yaml"
 
   - name: Configuration generation | Add Cilium Helm repo
     delegate_to: localhost
@@ -39,7 +39,7 @@
       helm template \
         cilium \
         cilium/cilium \
-        --version {{ cilium_version }} \
+        --version {{ cilium.version }} \
         --namespace kube-system \
         --set ipam.mode=kubernetes \
         --set kubeProxyReplacement=true \
@@ -50,11 +50,11 @@
         --set k8sServiceHost=localhost \
         --set k8sServicePort=7445 \
         --set l2announcements.enabled=true \
-        --set l2announcements.leaseDuration=3s \
-        --set l2announcements.leaseRenewDeadline=1s \
-        --set l2announcements.leaseRetryPeriod=500ms \
-        --set k8sClientRateLimit.qps=2 \
-        --set k8sClientRateLimit.burst=5
+        --set l2announcements.leaseDuration={{ cilium.l2.announcements.lease.duration }} \
+        --set l2announcements.leaseRenewDeadline={{ cilium.l2.announcements.lease.renew_deadline }} \
+        --set l2announcements.leaseRetryPeriod={{ cilium.l2.announcements.lease.retry_period }} \
+        --set k8sClientRateLimit.qps={{ cilium.k8s_client_rate_limit.qps }} \
+        --set k8sClientRateLimit.burst={{ cilium.k8s_client_rate_limit.burst }}
 
   - name: Configuration generation | Create cilium patch
     set_fact:
@@ -80,7 +80,7 @@
       talosctl gen config {{ cluster_name }} https://{{ inventory_hostname }}:6443 \
         --config-patch @../patchs/all.yaml \
         --config-patch-control-plane @../patchs/controlplane.yaml \
-        -o ../..
+        -o {{ inventory_dir }}
 
 ###############################################################################
 # Controlplane
@@ -88,10 +88,6 @@
 - hosts: controlplane
   gather_facts: no
   become: false
-
-  vars:
-    generic_machineconfig: controlplane.yaml
-
   tasks:
   - name: Configuration generation | Import tasks
     include_tasks: "{{ inventory_dir }}/tasks/gen-host-conf.yml"
@@ -102,10 +98,6 @@
 - hosts: worker
   gather_facts: no
   become: false
-
-  vars:
-    generic_machineconfig: worker.yaml
-
   tasks:
   - name: Configuration generation | Import tasks
     include_tasks: "{{ inventory_dir }}/tasks/gen-host-conf.yml"

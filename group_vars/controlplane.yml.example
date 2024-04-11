@@ -1,0 +1,25 @@
+---
+
+generic_machineconfig: controlplane.yaml
+
+cilium:
+  version: 1.15.1
+  l2:
+    blocks:
+    - cidr: "192.168.70.130/25"
+    - cidr: "192.168.70.131/25"
+    - cidr: "192.168.70.132/25"
+    - cidr: "192.168.70.133/25"
+    - cidr: "192.168.70.134/25"
+    - cidr: "192.168.70.135/25"
+    announcements:
+      lease:
+        duration: 3s
+        renew_deadline: 1s
+        retry_period: 500ms
+  k8s_client_rate_limit:
+    qps: 2
+    burst: 5
+
+ceph:
+  manager_endpoint_cidr: 192.168.70.130/25 # This address is part of cilium.l2.blocks

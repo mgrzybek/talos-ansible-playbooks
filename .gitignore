@@ -10,6 +10,7 @@ schematic.json
 
 # Ansible artifacts
 *.ini
+group_vars/*.yml
 
 # Manifests generated using helm or downloaded from internet
 mayastor.resources.yaml

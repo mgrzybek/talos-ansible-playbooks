@@ -1,0 +1,22 @@
+---
+
+cluster_name: my-cluster
+
+machine_patch:
+  machine:
+    install:
+      disk: /dev/vda
+    network:
+      interfaces:
+      # Interface used for management
+      - dhcp: true
+        deviceSelector:
+          busPath: "0000:00:01.0"
+      # Interface used to publish services
+      - dhcp: false
+        addresses:
+        - "{{ eth1_addr_cidr }}"
+        deviceSelector:
+          busPath: "0000:00:02.0"
+
+waiting_time_minutes: 5

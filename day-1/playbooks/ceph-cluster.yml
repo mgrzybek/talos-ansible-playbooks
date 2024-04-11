@@ -1,0 +1,64 @@
+---
+
+- hosts: controlplane
+  gather_facts: no
+  become: false
+  run_once: true
+  tasks:
+  - name: Ceph Cluster | Create the cluster
+    delegate_to: localhost
+    register: cluster
+    ansible.builtin.command: kubectl apply -f {{ inventory_dir }}/day-1/manifests/rook.cluster.yaml --wait=false
+    changed_when: cluster.stdout | regex_search("configured")
+
+  - name: Ceph Cluster | Wait for the cluster to be started (5 minutes per host * number of hosts)
+    until: (bootstrap.stdout | from_yaml).status.phase == "Ready"
+    delay: 300
+    retries: "{{ ansible_play_hosts | length }}"
+    register: bootstrap
+    delegate_to: localhost
+    ansible.builtin.command: kubectl -n rook-ceph get CephCluster rook-ceph -o yaml
+    failed_when: false
+    changed_when: false
+
+  - name: Ceph Cluster | Create the pool
+    delegate_to: localhost
+    register: pool
+    ansible.builtin.command: kubectl apply -f {{ inventory_dir }}/day-1/manifests/rook.pool.yaml --wait=false
+    changed_when: pool.stdout | regex_search("configured")
+
+  - name: Ceph Cluster | Create the Cilium L2 Load Balancer for the manager
+    delegate_to: localhost
+    when:
+    - ceph.manager_endpoint_cidr is defined
+    - ceph.manager_endpoint_cidr | length > 8
+    kubernetes.core.k8s:
+      wait: true
+      state: present
+      definition:
+        apiVersion: v1
+        kind: Service
+        metadata:
+          annotations:
+            "io.cilium/lb-ipam-ips": "{{ ceph.manager_endpoint_cidr }}"
+          labels:
+            app: rook-ceph-mgr
+            rook_cluster: rook-ceph
+            serviceType: core
+          name: rook-ceph-mgr-dashboard-cilium
+          namespace: rook-ceph
+        spec:
+          internalTrafficPolicy: Cluster
+          ipFamilies:
+          - IPv4
+          ipFamilyPolicy: SingleStack
+          ports:
+          - name: https-dashboard
+            port: 8443
+            protocol: TCP
+            targetPort: 8443
+          selector:
+            app: rook-ceph-mgr
+            mgr_role: active
+            rook_cluster: rook-ceph
+          type: LoadBalancer

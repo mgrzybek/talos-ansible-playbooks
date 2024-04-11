@@ -14,7 +14,7 @@
 
   - name: Upgrading k8s | Setting facts
     set_fact:
-      talosctl_opts: --insecure --talosconfig ../../talosconfig  -n {{ inventory_hostname }}
+      talosctl_opts: --insecure --talosconfig {{ inventory_dir }}/talosconfig  -n {{ inventory_hostname }}
 
   - name: Upgrade k8s | Starting the upgrade
     delegate_to: localhost

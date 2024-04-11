@@ -9,8 +9,8 @@
     assert:
       fail_msg: cilium_version must be defined
       that:
-      - cilium_version is defined
-      - cilium_version | length > 3
+      - cilium.version is defined
+      - cilium.version | length > 3
 
   - name: Upgrading Cilium | Get current version
     run_once: true
@@ -27,8 +27,8 @@
   
   - name: Upgrading Cilium | Check versions
     assert:
-      that: cilium_version > current_version
-      fail_msg: The new version shpuld be higher than the current one
+      that: cilium.version > current_version
+      fail_msg: The new version should be higher than the current one
 
   - name: Upgrading Cilium | Create Cilium manifest
     run_once: true
@@ -39,7 +39,7 @@
       helm template \
         cilium \
         cilium/cilium \
-        --version {{ cilium_version }} \
+        --version {{ cilium.version }} \
         --namespace kube-system \
         --set ipam.mode=kubernetes \
         --set kubeProxyReplacement=true \
@@ -50,12 +50,11 @@
         --set k8sServiceHost=localhost \
         --set k8sServicePort=7445 \
         --set l2announcements.enabled=true \
-        --set l2announcements.leaseDuration=3s \
-        --set l2announcements.leaseRenewDeadline=1s \
-        --set l2announcements.leaseRetryPeriod=500ms \
-        --set k8sServiceHost=localhost \
-        --set k8sClientRateLimit.qps=2 \
-        --set k8sClientRateLimit.burst=5
+        --set l2announcements.leaseDuration={{ cilium.l2.announcements.lease.duration }} \
+        --set l2announcements.leaseRenewDeadline={{ cilium.l2.announcements.lease.renew_deadline }} \
+        --set l2announcements.leaseRetryPeriod={{ cilium.l2.announcements.lease.retry_period }} \
+        --set k8sClientRateLimit.qps={{ cilium.k8s_client_rate_limit.qps }} \
+        --set k8sClientRateLimit.burst={{ cilium.k8s_client_rate_limit.burst }}
 
   - name: Upgrading Cilium | Apply the manifest
     delegate_to: localhost

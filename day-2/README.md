@@ -10,5 +10,6 @@ $ make add-nodes
 ## Upgrades
 
 ```console
+$ export KUBERNETES_VERSION="x.xx.x"
 $ make upgrade-k8s
 ```
