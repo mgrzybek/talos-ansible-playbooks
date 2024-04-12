@@ -12,17 +12,6 @@ ANSIBLE_OPTS=-i ../inventory.ini $(LIMIT_OPTS) $(VERBOSE_OPTS)
 
 ANSIBLE_PLAYBOOK=ansible-playbook $(ANSIBLE_OPTS)
 
-SIDERO_CONTROLLER_MANAGER_HOST_NETWORK=false
-ifndef SIDERO_CONTROLLER_MANAGER_DEPLOYMENT_STRATEGY ## Sidero deployment strategy
-	SIDERO_CONTROLLER_MANAGER_DEPLOYMENT_STRATEGY=Recreate
-endif
-ifndef SIDERO_CONTROLLER_MANAGER_API_ENDPOINT ## Sidero API endpoint
-	SIDERO_CONTROLLER_MANAGER_API_ENDPOINT=192.168.1.150
-endif
-ifndef SIDERO_CONTROLLER_MANAGER_SIDEROLINK_ENDPOINT ## Siderolink endpoint
-	SIDERO_CONTROLLER_MANAGER_SIDEROLINK_ENDPOINT=192.168.1.150
-endif
-
 ##############################################################################
 # Files to watch
 
@@ -90,24 +79,6 @@ rook-ceph-cluster: rook-ceph-operator cilium-l2 ## Deploy a ceph cluster
 ##############################################################################
 # Metal-as-a-Service targets
 
-## Sidero
-
-manifests/bootstrap.clusterctl.yaml:
-	clusterctl generate provider --bootstrap talos > manifests/bootstrap.clusterctl.yaml
-
-manifests/controlplane.clusterctl.yaml:
-	clusterctl generate provider --control-plane talos > manifests/controlplane.clusterctl.yaml
-
-manifests/infrastructure.clusterctl.yaml:
-	clusterctl generate provider --infrastructure sidero > manifests/infrastructure.clusterctl.yaml
-
-.PHONY: sidero-metal
-sidero-metal: manifests/bootstrap.clusterctl.yaml manifests/controlplane.clusterctl.yaml manifests/infrastructure.clusterctl.yaml ## Install the sidero deployment stack
-	$(ANSIBLE_PLAYBOOK) playbooks/sidero-metal.yml \
-		-e api_endpoint_ipaddr=$(SIDERO_CONTROLLER_MANAGER_API_ENDPOINT) \
-		-e siderolink_endpoint_ipaddr=$(SIDERO_CONTROLLER_MANAGER_SIDEROLINK_ENDPOINT)
-
-
 ## Tinkerbell
 
 /tmp/tink-charts:
@@ -127,12 +98,12 @@ help: ## This help message
 	@awk \
 		'$$1 ~ /^ifdef/ && $$3 ~ /##/ {gsub(/##/,"\t") ; gsub("ifdef ","") ; print $$0}' \
 		Makefile \
-	| expand -t50 \
+	| expand -t35 \
 	| sort
 	@awk \
 		'$$1 ~ /^ifndef/ && $$3 ~ /##/ {gsub(/##/,"\t") ; gsub("ifndef ","") ; print $$0}' \
 		Makefile \
-	| expand -t50 \
+	| expand -t35 \
 	| sort
 	@echo
 

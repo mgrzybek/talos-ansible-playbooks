@@ -592,11 +592,14 @@ spec:
         image: rook/ceph:v1.13.7
         args: [ceph, operator]
         securityContext:
+          allowPrivilegeEscalation: false
           runAsNonRoot: true
           runAsUser: 2016
           runAsGroup: 2016
           capabilities:
             drop: [ALL]
+          seccompProfile:
+            type: RuntimeDefault
         volumeMounts:
         - mountPath: /var/lib/rook
           name: rook-config
