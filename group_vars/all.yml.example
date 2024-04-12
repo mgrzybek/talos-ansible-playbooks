@@ -19,4 +19,8 @@ machine_patch:
         deviceSelector:
           busPath: "0000:00:02.0"
 
+tinkerbell:
+  lb_ip: "192.168.70.131"
+  stack_chart_version: "0.4.3"
+
 waiting_time_minutes: 5

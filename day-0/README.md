@@ -48,6 +48,7 @@ The current YAML file adds gVisor support.
 For example:
 
 ```yaml
+# day-0/bare-metal.yaml
 ---
 customization:
   systemExtensions:
@@ -125,4 +126,17 @@ cilium:
 
 ceph:
   manager_endpoint_cidr: "192.168.70.130" # This address is part of cilium.l2.blocks
+```
+
+### Tinkerbell
+
+The tink stack LoadBalancer must use a Cilium-based IP address thanks to the pre-defined CIDR blocks.
+
+```yaml
+# group_vars/controlplane.yml
+---
+
+tinkerbell:
+  lb_ip: "192.168.70.131"      # This address is part of cilium.l2.blocks
+  stack_chart_version: "0.4.3" # Choose the release you want
 ```
