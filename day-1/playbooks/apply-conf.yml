@@ -1,5 +1,3 @@
----
-
 ###############################################################################
 # Controlplane
 
@@ -13,7 +11,7 @@
 
   tasks:
   - name: Applying configuration | _includeing tasks
-    include_tasks: "{{ inventory_dir }}/tasks/apply-host-conf.yml"
+    include_tasks: '{{ inventory_dir }}/tasks/apply-host-conf.yml'
 
 ###############################################################################
 # Worker
@@ -28,4 +26,4 @@
 
   tasks:
   - name: Applying configuration | _includeing tasks
-    include_tasks: "{{ inventory_dir }}/tasks/apply-host-conf.yml"
+    include_tasks: '{{ inventory_dir }}/tasks/apply-host-conf.yml'

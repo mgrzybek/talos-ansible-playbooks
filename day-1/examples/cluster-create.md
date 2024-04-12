@@ -1,13 +1,14 @@
 # Installing a cluster
 
 This takes around 28 minutes:
+
 - one controlplane
 - three workers
 - cilium operator
 - 30 Mb broadband connection
 
 | Env. variable  | Value      |
-|----------------|------------|
+| -------------- | ---------- |
 | CILIUM_VERSION | 1.15.1     |
 | CLUSTER_NAME   | my-cluster |
 

@@ -2,11 +2,11 @@
   delegate_to: localhost
   register: result
   ansible.builtin.stat:
-    path: "{{ inventory_dir }}/{{ inventory_hostname }}.host.yaml"
+    path: '{{ inventory_dir }}/{{ inventory_hostname }}.host.yaml'
 
 - name: Adding new nodes | Set facts
   set_fact:
-    manifest: "{{ inventory_dir }}/{% if result.stat.exists %}{{ inventory_hostname }}.host.yaml{% else %}{{ generic_machineconfig }}{% endif %}"
+    manifest: '{{ inventory_dir }}/{% if result.stat.exists %}{{ inventory_hostname }}.host.yaml{% else %}{{ generic_machineconfig }}{% endif %}'
     talosctl_opts: --insecure --talosconfig {{ inventory_dir }}/talosconfig  -n {{ inventory_hostname }}
 
 - name: Adding new nodes | Applying the configuration to the new node
@@ -18,7 +18,7 @@
   - adding_node is undefined
   - ansible_play_hosts | length > 1
   ansible.builtin.pause:
-    minutes: "{{ waiting_time_minutes }}"
+    minutes: '{{ waiting_time_minutes }}'
     prompt: |
       Wait {{ waiting_time_minutes }} minutes between nodes to let them install.
       This is useful when nodes are slow to reboot or in case of a bad internet connectivity.

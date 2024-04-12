@@ -1,5 +1,3 @@
----
-
 - hosts: controlplane
   gather_facts: no
   become: false
@@ -23,16 +21,16 @@
         wait: true
         state: present
         definition:
-          apiVersion: "cilium.io/v2alpha1"
+          apiVersion: cilium.io/v2alpha1
           kind: CiliumLoadBalancerIPPool
           metadata:
-            name: "core-pool-l2"
+            name: core-pool-l2
             namespace: kube-system
           spec:
-            blocks: "{{ cilium.l2.blocks }}"
+            blocks: '{{ cilium.l2.blocks }}'
             serviceSelector:
               matchLabels:
-                "serviceType": "core"
+                serviceType: core
 
     - name: Cilium L2 | Create CiliumL2AnnouncementPolicy
       delegate_to: localhost
@@ -40,7 +38,7 @@
         wait: true
         state: present
         definition:
-          apiVersion: "cilium.io/v2alpha1"
+          apiVersion: cilium.io/v2alpha1
           kind: CiliumL2AnnouncementPolicy
           metadata:
             name: core-services
@@ -51,8 +49,8 @@
                 serviceType: core
             nodeSelector:
               matchExpressions:
-                - key: node-role.kubernetes.io/control-plane
-                  operator: DoesNotExist
+              - key: node-role.kubernetes.io/control-plane
+                operator: DoesNotExist
             interfaces: []
             externalIPs: true
             loadBalancerIPs: true
@@ -62,7 +60,7 @@
       register: result
       changed_when: false
       ansible.builtin.shell: kubectl get CiliumLoadBalancerIPPool core-pool-l2 | awk '{print $3}'
-     
+
     - name: Cilium L2 | Check conficting IPs
       assert:
         fail_msg: Conflicting IPs have been found, please run `kubectl get CiliumLoadBalancerIPPool core-pool-l2 -o yaml | yq .status.conditions`

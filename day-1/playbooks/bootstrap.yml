@@ -1,5 +1,3 @@
----
-
 - hosts: controlplane
   gather_facts: no
   become: false
@@ -11,8 +9,8 @@
 
   - name: Bootstrap | Bootstrap talos controlplane (bootstrap of one etcd instance)
     until: bootstrap is success
-    delay: 120
-    retries: 10
+    delay: 30
+    retries: 30
     register: bootstrap
     delegate_to: localhost
     ansible.builtin.command: talosctl {{ talosctl_opts }} bootstrap
@@ -25,12 +23,12 @@
 
   - name: Bootstrap | Wait for the node to be ready
     until: health is success
-    retries: 20
     delay: 30
+    retries: 30
     register: health
     delegate_to: localhost
     changed_when: false
-    ansible.builtin.command:  talosctl {{ talosctl_opts }} health
+    ansible.builtin.command: talosctl {{ talosctl_opts }} health
 
   - name: Bootstrap | Get kubernetes configuration
     delegate_to: localhost

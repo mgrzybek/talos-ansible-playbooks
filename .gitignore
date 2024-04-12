@@ -17,6 +17,7 @@ mayastor.resources.yaml
 metallb-native.yaml
 *.clusterctl.yaml
 opensearch-operator.yaml
+tinkerbell.yaml
 
 # MacOS
 .DS_Store

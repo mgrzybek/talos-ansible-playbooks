@@ -1,5 +1,3 @@
----
-
 - hosts: controlplane
   gather_facts: no
   become: false
@@ -15,4 +13,4 @@
     register: health
     delegate_to: localhost
     changed_when: false
-    ansible.builtin.command:  talosctl {{ talosctl_opts }} health --wait-timeout=1m
+    ansible.builtin.command: talosctl {{ talosctl_opts }} health --wait-timeout=1m

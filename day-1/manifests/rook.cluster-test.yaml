@@ -1,3 +1,4 @@
+---
 #################################################################################################################
 # Define the settings for the rook-ceph cluster with common settings for a small test cluster.
 # All nodes with available raw devices will be used for the Ceph cluster. One node is sufficient
@@ -45,11 +46,11 @@ spec:
     managePodBudgets: true
   cephConfig:
     global:
-      osd_pool_default_size: "1"
-      mon_warn_on_pool_no_redundancy: "false"
-      bdev_flock_retry: "20"
-      bluefs_buffered_io: "false"
-      mon_data_avail_warn: "10"
+      osd_pool_default_size: '1'
+      mon_warn_on_pool_no_redundancy: 'false'
+      bdev_flock_retry: '20'
+      bluefs_buffered_io: 'false'
+      mon_data_avail_warn: '10'
 ---
 apiVersion: ceph.rook.io/v1
 kind: CephBlockPool

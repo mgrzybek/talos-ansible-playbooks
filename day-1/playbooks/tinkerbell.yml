@@ -1,0 +1,149 @@
+- hosts: controlplane
+  gather_facts: no
+  become: false
+  run_once: true
+  tasks:
+  - name: Tinkerbell | Get architecture
+    delegate_to: localhost
+    changed_when: false
+    register: architecture
+    ansible.builtin.shell: |
+      kubectl get nodes \
+        -o=jsonpath='{.items[*].metadata.labels}' \
+        | jq \
+        | awk -F"\"" "/arm64/ {print \$(NF-1)}"
+
+  - name: Tinkerbell | Check variables
+    assert:
+      fail_msg: lb_ip and stack_chart_version must be defined.
+      that:
+      - tinkerbell.lb_ip is defined
+      - tinkerbell.lb_ip | length > 8
+      - tinkerbell.stack_chart_version is defined
+      - tinkerbell.stack_chart_version | length > 3
+
+  - name: Tinkerbell | Get trusted proxies
+    delegate_to: localhost
+    changed_when: false
+    register: proxies
+    ansible.builtin.shell: kubectl get nodes -o jsonpath='{.items[*].spec}' | jq -r '.podCIDR'
+
+  - name: Tinkerbell | Set fact
+    set_fact:
+      trusted_proxies: '{{ proxies.stdout_lines }}'
+      set_arm_images: '{% if architecture.stdout_lines | length >0 %}true{% else %}false {% endif %}'
+
+  - name: Tinkerbell | Create namespace
+    delegate_to: localhost
+    kubernetes.core.k8s:
+      wait: true
+      state: present
+      definition:
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: tink-system
+          labels:
+            kubernetes.io/metadata.name: tink-system
+
+  - name: Tinkerbell | Add CRDs
+    delegate_to: localhost
+    register: crds
+    changed_when: crds.stdout | regex_search("configured")
+    ansible.builtin.command: |
+      kubectl apply \
+        -f /tmp/tink-charts/tinkerbell/rufio/crds \
+        -f /tmp/tink-charts/tinkerbell/tink/crds
+
+  - name: Tinkerbell | Create Helm template
+    delegate_to: localhost
+    register: result
+    ansible.builtin.command: |
+      helm template tink-stack oci://ghcr.io/tinkerbell/charts/stack \
+        --version "{{ tinkerbell.stack_chart_version }}" \
+        --namespace tink-system \
+        {% if trusted_proxies | length > 0 -%}
+        --set "smee.trustedProxies={{ "{" }}{{ trusted_proxies | join(",") }}{{ "}" }}" \
+        --set "hegel.trustedProxies={{ "{" }}{{ trusted_proxies | join(",") }}{{ "}" }}" \
+        {% endif -%}
+        --set "stack.loadBalancerIP={{ tinkerbell.lb_ip }}" \
+        --set "smee.publicIP={{ tinkerbell.lb_ip }}" \
+        --set stack.kubevip.enabled=false \
+        --set stack.lbClass="io.cilium/l2-announcer"
+
+  - name: Tinkerbell | Create the manifest
+    delegate_to: localhost
+    ansible.builtin.copy:
+      content: '{{ result.stdout }}'
+      dest: '{{ inventory_dir }}/day-1/manifests/tinkerbell.yaml'
+
+  - name: Tinkerbell | Add Cilium L2 annotation
+    delegate_to: localhost
+    ansible.builtin.command: |
+      yq e -i \
+        '(select(.kind == "Service" and .metadata.name == "tink-stack") | .metadata.annotations."io.cilium/lb-ipam-ips") = "{{ tinkerbell.lb_ip }}"' \
+        {{ inventory_dir }}/day-1/manifests/tinkerbell.yaml
+
+  - name: Tinkerbell | Patch svc to use Cilium
+    delegate_to: localhost
+    ansible.builtin.command: |
+      yq e -i \
+        '(select(.kind == "Service" and .metadata.name == "tink-stack") | .metadata.labels.serviceType) = "core"' \
+        {{ inventory_dir }}/day-1/manifests/tinkerbell.yaml
+
+
+  - name: Tinkerbell | Change dhcrelay image
+    when: set_arm_images | lower == "true"
+    delegate_to: localhost
+    lineinfile:
+      path: '{{ inventory_dir }}/day-1/manifests/tinkerbell.yaml'
+      regexp: '          image: ghcr.io/jacobweinstock/dhcrelay'
+      line: '          image: docker.io/mrdojojo/dhcrelay'
+
+  - name: Tinkerbell | Remove loadBalancerIP from the manifest
+    delegate_to: localhost
+    lineinfile:
+      path: '{{ inventory_dir }}/day-1/manifests/tinkerbell.yaml'
+      regexp: loadBalancerIP
+      state: absent
+
+  - name: Tinkerbell | Install
+    delegate_to: localhost
+    register: install
+    changed_when: install.stdout | regex_search("configured")
+    ansible.builtin.command: |
+      kubectl apply \
+        -f {{ inventory_dir }}/day-1/manifests/tinkerbell.yaml \
+        --wait=false
+
+  - name: Tinkerbell | Verify all pods are running
+    delegate_to: localhost
+    changed_when: false
+    ansible.builtin.shell: kubectl get pods -n tink-system | awk '!/Completed/ && !/STATUS/ {print $3}' | sort -u
+    register: result
+    retries: 30
+    delay: 60
+    until:
+    - result.stdout_lines | length == 1
+    - result.stdout == "Running"
+
+  - name: Tinkerbell | Verify the download-hook job has completed
+    delegate_to: localhost
+    changed_when: false
+    ansible.builtin.shell: kubectl get jobs -n tink-system | awk '!/COMPLETIONS/ {print $2}' | sort -u
+    register: result
+    retries: 30
+    delay: 60
+    until:
+    - result.stdout_lines | length == 1
+    - result.stdout == "1/1"
+
+  - name: Tinkerbell | Verify the tink-stack service has the IP you specified with {{ tinkerbell.lb_ip }} under the EXTERNAL-IP column
+    delegate_to: localhost
+    changed_when: false
+    ansible.builtin.shell: kubectl get svc -n tink-system | awk '{print $4}'
+    register: result
+    retries: 30
+    delay: 60
+    until:
+    - tinkerbell.lb_ip in result.stdout_lines

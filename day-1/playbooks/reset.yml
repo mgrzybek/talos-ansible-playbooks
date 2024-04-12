@@ -1,11 +1,9 @@
----
-
 - hosts: all
   gather_facts: no
   become: false
   tasks:
   - name: Reset | Assert variables
-    assert: 
+    assert:
       fail_msg: cluster_name variable must be defined
       that:
       - cluster_name is defined

@@ -90,6 +90,8 @@ rook-ceph-cluster: rook-ceph-operator cilium-l2 ## Deploy a ceph cluster
 ##############################################################################
 # Metal-as-a-Service targets
 
+## Sidero
+
 manifests/bootstrap.clusterctl.yaml:
 	clusterctl generate provider --bootstrap talos > manifests/bootstrap.clusterctl.yaml
 
@@ -106,11 +108,14 @@ sidero-metal: manifests/bootstrap.clusterctl.yaml manifests/controlplane.cluster
 		-e siderolink_endpoint_ipaddr=$(SIDERO_CONTROLLER_MANAGER_SIDEROLINK_ENDPOINT)
 
 
-##############################################################################
-# Tinkerbell
+## Tinkerbell
+
+/tmp/tink-charts:
+	git clone https://github.com/tinkerbell/charts /tmp/tink-charts
 
 .PHONY: tinkerbell
-tinkerbell:
+tinkerbell: cilium-l2 /tmp/tink-charts
+	$(ANSIBLE_PLAYBOOK) playbooks/tinkerbell.yml
 
 ##############################################################################
 # Help

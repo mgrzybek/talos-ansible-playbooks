@@ -13,5 +13,3 @@ repos:
     # Optionally add plugins
     additional_dependencies:
     - mdformat-gfm
-    options:
-    - wrap: 80

@@ -43,9 +43,10 @@ Depending on your needs, you might customise the ISO image used to start and i
 The current YAML file adds gVisor support.
 
 1. Edit `bare-metal.yaml` to add custom options to the ISO image.
-2. Create the right ISO image using the Talos Factory
+1. Create the right ISO image using the Talos Factory
 
 For example:
+
 ```yaml
 ---
 customization:
@@ -87,6 +88,7 @@ cluster_name: my-cluster # Value to be set
 ### Ceph storage and disks
 
 The disks should be declared properly, the given spec should be patched.
+
 ```yaml
 # day-1/manifests/rook.cluster.yaml
 ---

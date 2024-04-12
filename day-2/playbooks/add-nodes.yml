@@ -1,5 +1,3 @@
----
-
 - hosts: all
   gather_facts: no
   become: false
@@ -17,13 +15,13 @@
 
   - name: Adding new nodes | Setting facts
     set_fact:
-      nodes: "{{ members.stdout_lines | to_yaml }}"
+      nodes: '{{ members.stdout_lines | to_yaml }}'
 
   - name: Adding new nodes | Configuring if not a member yet
     when: not inventory_hostname in nodes
     block:
     - name: Adding new nodes | Configuring the new node
-      include_tasks: "{{ inventory_dir }}/tasks/gen-host-conf.yml"
+      include_tasks: '{{ inventory_dir }}/tasks/gen-host-conf.yml'
 
     - name: Adding new nodes | Applying configuration
-      include_tasks: "{{ inventory_dir }}tasks/apply-host-conf.yml"
+      include_tasks: '{{ inventory_dir }}tasks/apply-host-conf.yml'

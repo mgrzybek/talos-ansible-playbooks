@@ -35,7 +35,7 @@ parameters:
   # unmapOptions: force
 
   # RBD image format. Defaults to "2".
-  imageFormat: "2"
+  imageFormat: '2'
   # RBD image features
   # Available for imageFormat: "2". Older releases of CSI RBD
   # support only the `layering` feature. The Linux kernel (KRBD) supports the

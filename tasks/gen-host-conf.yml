@@ -1,6 +1,6 @@
 - name: Configuration generation | Set facts
   set_fact:
-    patch_dir: "{{ inventory_dir }}/day-1/patchs"
+    patch_dir: '{{ inventory_dir }}/day-1/patchs'
 
 - name: Configuration generation | Create host patch
   when: eth1_addr_cidr is defined
@@ -8,9 +8,8 @@
   - name: Configuration generation | Create the host patch file
     delegate_to: localhost
     ansible.builtin.copy:
-      content: "{{ machine_patch }}"
-      dest: "{{ patch_dir }}/{{ inventory_hostname }}.host.yaml"
-  
+      content: '{{ machine_patch }}'
+      dest: '{{ patch_dir }}/{{ inventory_hostname }}.host.yaml'
   - name: Configuration generation | Create talos configuration for each node
     delegate_to: localhost
     ansible.builtin.command: |

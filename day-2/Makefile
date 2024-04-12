@@ -4,7 +4,7 @@ else
 	LIMIT_OPTS=
 endif
 
-ifdef VERBOSE
+ifdef VERBOSE ## Set ansible in verbose mode (bool)
 	VERBOSE_OPTS=-vvv
 endif
 
@@ -15,6 +15,13 @@ ANSIBLE_OPTS=-i ../inventory.ini \
 ANSIBLE_PLAYBOOK=ansible-playbook $(ANSIBLE_OPTS)
 
 KUBECTL_DELETE=kubectl delete --wait=true
+
+check_defined = \
+	$(strip $(foreach 1,$1, \
+		$(call __check_defined,$1,$(strip $(value 2)))))
+__check_defined = \
+	$(if $(value $1),, \
+		$(error Undefined $1$(if $2, ($2))))
 
 ##############################################################################
 # Files to watch
@@ -40,6 +47,9 @@ upgrade-cilium: ## Upgrade cilium cni to the given vension
 
 .PHONY: remove-node
 remove-node: ## Remove a node from the cluster (NODE_IP, NODE_NAME)
+	@$(call check_defined NODE_IP)
+	@$(call check_defined NODE_NAME)
+
 	talosctl -n $(NODE_IP) -e $(NODE_IP) reset --talosconfig=../talosconfig
 	kubectl remove node $(NODE_NAME)
 	rm -f ../$(NODE_IP).host.yaml
@@ -47,28 +57,54 @@ remove-node: ## Remove a node from the cluster (NODE_IP, NODE_NAME)
 ##############################################################################
 # Removing services
 
-.PHONY: destroy-rook-operator
-destroy-rook-ceph: ## Remove Rook operator for Ceph
-	kubectl --namespace rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"cleanupPolicy":{"confirmation":"yes-really-destroy-data"}}}'
+.PHONY: remove-rook-operator
+remove-rook-ceph: ## Remove Rook operator for Ceph
+	kubectl --namespace rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"cleanupPolicy":{"confirmation":"yes-really-remove-data"}}}'
+
 	kubectl delete storageclasses ceph-block ceph-bucket ceph-filesystem
+
 	kubectl --namespace rook-ceph delete cephblockpools ceph-blockpool
 	kubectl --namespace rook-ceph delete cephobjectstore ceph-objectstore
 	kubectl --namespace rook-ceph delete cephfilesystem ceph-filesystem
 	kubectl --namespace rook-ceph delete cephcluster rook-ceph
-	helm --namespace rook-ceph uninstall rook-ceph-cluster
-	helm --namespace rook-ceph uninstall rook-ceph
-	kubectl delete crds cephblockpools.ceph.rook.io cephbucketnotifications.ceph.rook.io cephbuckettopics.ceph.rook.io \
-		cephclients.ceph.rook.io cephclusters.ceph.rook.io cephfilesystemmirrors.ceph.rook.io \
-		cephfilesystems.ceph.rook.io cephfilesystemsubvolumegroups.ceph.rook.io \
-		cephnfses.ceph.rook.io cephobjectrealms.ceph.rook.io cephobjectstores.ceph.rook.io \
-		cephobjectstoreusers.ceph.rook.io cephobjectzonegroups.ceph.rook.io cephobjectzones.ceph.rook.io \
-		cephrbdmirrors.ceph.rook.io objectbucketclaims.objectbucket.io objectbuckets.objectbucket.io
+
+	kubectl --namespace rook-ceph delete -f ../day-1/manifests/rook.cluster.yaml
+	kubectl --namespace rook-ceph delete -f ../day-1/manifests/rook.operator.yaml
+	kubectl --namespace rook-ceph delete -f ../day-1/manifests/rook.common.yaml
+	kubectl --namespace rook-ceph delete -f ../day-1/manifests/rook.crds.yaml
+
+.PHONY: remove-tinkerbell
+remove-tinkerbell: ## Remove Tinkerbell
+	kubectl delete ns tink-system --wait
+	kubectl delete crds \
+		hardware.tinkerbell.org \
+		jobs.bmc.tinkerbell.org \
+		machines.bmc.tinkerbell.org \
+		tasks.bmc.tinkerbell.org \
+		templates.tinkerbell.org \
+		workflows.tinkerbell.org
 
 ##############################################################################
 # Help
 
 .PHONY: help
 help: ## This help message
+	@echo Global variables
+	@echo ================
+	@awk \
+		'$$1 ~ /^ifdef/ && $$3 ~ /##/ {gsub(/##/,"\t") ; gsub("ifdef ","") ; print $$0}' \
+		Makefile \
+	| expand -t30 \
+	| sort
+	@awk \
+		'$$1 ~ /^ifndef/ && $$3 ~ /##/ {gsub(/##/,"\t") ; gsub("ifndef ","") ; print $$0}' \
+		Makefile \
+	| expand -t30 \
+	| sort
+	@echo
+
+	@echo Targets
+	@echo =======
 	@awk -F: \
 		'/^([a-z0-9\.-]+): *.* ## (.+)$$/ {gsub(/: .*?\s*##/, "\t");print}' \
 		Makefile \

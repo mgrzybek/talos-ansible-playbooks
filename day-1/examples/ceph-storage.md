@@ -1,12 +1,13 @@
 # Deploying Ceph
 
 This takes around 6 minutes:
+
 - one controlplane
 - three workers
 - three OSDs
 
 | Env. variable  | Value      |
-|----------------|------------|
+| -------------- | ---------- |
 | CILIUM_VERSION | 1.15.1     |
 | CLUSTER_NAME   | my-cluster |
 

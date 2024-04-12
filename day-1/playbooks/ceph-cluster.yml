@@ -1,5 +1,3 @@
----
-
 - hosts: controlplane
   gather_facts: no
   become: false
@@ -14,7 +12,7 @@
   - name: Ceph Cluster | Wait for the cluster to be started (5 minutes per host * number of hosts)
     until: (bootstrap.stdout | from_yaml).status.phase == "Ready"
     delay: 300
-    retries: "{{ ansible_play_hosts | length }}"
+    retries: '{{ ansible_play_hosts | length }}'
     register: bootstrap
     delegate_to: localhost
     ansible.builtin.command: kubectl -n rook-ceph get CephCluster rook-ceph -o yaml
@@ -40,7 +38,7 @@
         kind: Service
         metadata:
           annotations:
-            "io.cilium/lb-ipam-ips": "{{ ceph.manager_endpoint_cidr }}"
+            io.cilium/lb-ipam-ips: '{{ ceph.manager_endpoint_cidr }}'
           labels:
             app: rook-ceph-mgr
             rook_cluster: rook-ceph
