@@ -3,16 +3,22 @@
   become: false
   run_once: true
   tasks:
+  - name: Ceph Cluster | Get the number of nodes
+    delegate_to: localhost
+    register: nodes
+    ansible.builtin.command: kubectl get nodes
+    changed_when: false
+
   - name: Ceph Cluster | Create the cluster
     delegate_to: localhost
     register: cluster
-    ansible.builtin.command: kubectl apply -f {{ inventory_dir }}/day-1/manifests/rook.cluster.yaml --wait=false
+    ansible.builtin.command: kubectl apply -f {{ inventory_dir }}/day-1/manifests/rook.cluster.yaml --wait=true
     changed_when: cluster.stdout | regex_search("configured")
 
-  - name: Ceph Cluster | Wait for the cluster to be started (5 minutes per host * number of hosts)
+  - name: Ceph Cluster | Wait for the cluster to be started
     until: (bootstrap.stdout | from_yaml).status.phase == "Ready"
-    delay: 300
-    retries: '{{ ansible_play_hosts | length }}'
+    delay: '{{ waiting_time_minutes * 60 }}'
+    retries: '{{ nodes.stdout_lines | length - 1 }}'
     register: bootstrap
     delegate_to: localhost
     ansible.builtin.command: kubectl -n rook-ceph get CephCluster rook-ceph -o yaml
@@ -22,7 +28,7 @@
   - name: Ceph Cluster | Create the pool
     delegate_to: localhost
     register: pool
-    ansible.builtin.command: kubectl apply -f {{ inventory_dir }}/day-1/manifests/rook.pool.yaml --wait=false
+    ansible.builtin.command: kubectl apply -f {{ inventory_dir }}/day-1/manifests/rook.pool.yaml --wait=true
     changed_when: pool.stdout | regex_search("configured")
 
   - name: Ceph Cluster | Create the Cilium L2 Load Balancer for the manager
