@@ -104,7 +104,7 @@ spec:
 
 ### Cilium L2 LoadBalancer
 
-Cilium will used L2 announcements to publish service, such as Ceph WebGUI. The documentation about [LB IPAM](https://docs.cilium.io/en/stable/network/lb-ipam/) might be useful. Moreover, [the documentation about L2 explians how to size the client rate limit](https://docs.cilium.io/en/latest/network/l2-announcements/#sizing-client-rate-limit).
+Cilium will used L2 announcements to publish service, such as Ceph WebGUI. The documentation about [LB IPAM](https://docs.cilium.io/en/stable/network/lb-ipam/) might be useful. Moreover, [the documentation about L2 explains how to size the client rate limit](https://docs.cilium.io/en/latest/network/l2-announcements/#sizing-client-rate-limit).
 
 ```yaml
 # group_vars/controlplane.yml
