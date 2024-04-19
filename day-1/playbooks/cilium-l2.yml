@@ -66,3 +66,39 @@
         fail_msg: Conflicting IPs have been found, please run `kubectl get CiliumLoadBalancerIPPool core-pool-l2 -o yaml | yq .status.conditions`
         that:
         - not "True" in result.stdout_lines
+
+    - name: Cilium L2 | Create Hubble Load Balancer
+      when:
+      - hubble_ui_emdpoint_cidr is defined
+      - hubble_ui_emdpoint_cidr | length > 8
+      delegate_to: localhost
+      kubernetes.core.k8s:
+        wait: true
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            annotations:
+              io.cilium/lb-ipam-ips: '{{ hubble_ui_emdpoint_cidr }}'
+            labels:
+              app.kubernetes.io/name: hubble-ui
+              app.kubernetes.io/part-of: cilium
+              k8s-app: hubble-ui
+              serviceType: core
+            name: hubble-ui-cilium
+            namespace: kube-system
+          spec:
+            internalTrafficPolicy: Cluster
+            ipFamilies:
+            - IPv4
+            ipFamilyPolicy: SingleStack
+            loadBalancerClass: io.cilium/l2-announcer
+            ports:
+            - name: http
+              port: 80
+              protocol: TCP
+              targetPort: 8081
+            selector:
+              k8s-app: hubble-ui
+            type: LoadBalancer

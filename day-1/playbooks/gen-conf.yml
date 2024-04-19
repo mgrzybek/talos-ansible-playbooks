@@ -52,7 +52,9 @@
         --set l2announcements.leaseRenewDeadline={{ cilium.l2.announcements.lease.renew_deadline }} \
         --set l2announcements.leaseRetryPeriod={{ cilium.l2.announcements.lease.retry_period }} \
         --set k8sClientRateLimit.qps={{ cilium.k8s_client_rate_limit.qps }} \
-        --set k8sClientRateLimit.burst={{ cilium.k8s_client_rate_limit.burst }}
+        --set k8sClientRateLimit.burst={{ cilium.k8s_client_rate_limit.burst }} \
+        --set hubble.relay.enabled=true \
+        --set hubble.ui.enabled=true
 
   - name: Configuration generation | Create cilium patch
     set_fact:
