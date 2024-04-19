@@ -66,10 +66,14 @@
         --set "smee.trustedProxies={{ "{" }}{{ trusted_proxies | join(",") }}{{ "}" }}" \
         --set "hegel.trustedProxies={{ "{" }}{{ trusted_proxies | join(",") }}{{ "}" }}" \
         {% endif -%}
+        {% if tinkerbell.log_level is defined -%}
+        --set smee.logLevel={{ tinkerbell.log_level }} \
+        {% endif -%}
         --set "stack.loadBalancerIP={{ tinkerbell.lb_ip }}" \
         --set "smee.publicIP={{ tinkerbell.lb_ip }}" \
         --set stack.kubevip.enabled=false \
-        --set stack.lbClass="io.cilium/l2-announcer"
+        --set stack.lbClass="io.cilium/l2-announcer" \
+        --set smee.http.additionlKernelArgs="{kpti=off}"
 
   - name: Tinkerbell | Create the manifest
     delegate_to: localhost
@@ -91,8 +95,7 @@
         '(select(.kind == "Service" and .metadata.name == "tink-stack") | .metadata.labels.serviceType) = "core"' \
         {{ inventory_dir }}/day-1/manifests/tinkerbell.yaml
 
-
-  - name: Tinkerbell | Change dhcrelay image
+  - name: Tinkerbell | Change dhcrelay image for aarch64 support
     when: set_arm_images | lower == "true"
     delegate_to: localhost
     lineinfile:
