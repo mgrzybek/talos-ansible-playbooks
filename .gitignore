@@ -13,11 +13,12 @@ schematic.json
 group_vars/*.yml
 
 # Manifests generated using helm or downloaded from internet
-mayastor.resources.yaml
-metallb-native.yaml
 *.clusterctl.yaml
 opensearch-operator.yaml
 tinkerbell.yaml
 
 # MacOS
 .DS_Store
+
+# Testing and WIP stuff
+tmp
