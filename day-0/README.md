@@ -104,7 +104,7 @@ spec:
 
 ### Cilium L2 LoadBalancer
 
-Cilium will used L2 announcements to publish service, such as Ceph WebGUI. The documentation about [LB IPAM](https://docs.cilium.io/en/stable/network/lb-ipam/) might be useful. Moreover, [the documentation about L2 explains how to size the client rate limit](https://docs.cilium.io/en/latest/network/l2-announcements/#sizing-client-rate-limit).
+Cilium will used L2 announcements to publish service, such as Ceph or Hubble WebGUI. The documentation about [LB IPAM](https://docs.cilium.io/en/stable/network/lb-ipam/) might be useful. Moreover, [the documentation about L2 explains how to size the client rate limit](https://docs.cilium.io/en/latest/network/l2-announcements/#sizing-client-rate-limit).
 
 ```yaml
 # group_vars/controlplane.yml
@@ -112,6 +112,7 @@ Cilium will used L2 announcements to publish service, such as Ceph WebGUI. The d
 
 cilium:
   version: "1.15.1"
+  hubble_ui_emdpoint_cidr: "192.168.70.131" # This address is part of cilium.l2.blocks
   l2:
     blocks: # Let’s declare 6 IP addresses
     - cidr: "192.168.70.128/25"
@@ -137,6 +138,6 @@ The tink stack LoadBalancer must use a Cilium-based IP address thanks to the pre
 ---
 
 tinkerbell:
-  lb_ip: "192.168.70.131"      # This address is part of cilium.l2.blocks
+  lb_ip: "192.168.70.132"      # This address is part of cilium.l2.blocks
   stack_chart_version: "0.4.3" # Choose the release you want
 ```
