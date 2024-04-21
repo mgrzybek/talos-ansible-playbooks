@@ -114,7 +114,7 @@ cilium:
   version: "1.15.1"
   hubble_ui_emdpoint_cidr: "192.168.70.131" # This address is part of cilium.l2.blocks
   l2:
-    blocks: # Let’s declare 6 IP addresses
+    blocks: # Let’s declare a range of IP addresses
     - cidr: "192.168.70.128/25"
     announcements:
       lease:
