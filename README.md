@@ -6,8 +6,17 @@ Ansible playbooks to provide Talos Linux + Cilium + Ceph deployments.
 
 ### Core services
 
-- Talos Linux cluster with embedded Cilium CNI (layer2-3)
-- Rook-Ceph-based storage
+| Name      | Description                                  | URL                    |
+|-----------|----------------------------------------------|------------------------|
+| Talos     | Kubernetes-focused Linux distribution        | https://www.talos.dev/ |
+| Cilium    | CNI to provide L2/L3, mesh and observability | https://cilium.io/     |
+| Rook-Ceph | CSI powered by Ceph-based operator           | https://rook.io/       |
+
+### Middlewares
+
+| Name       | Description                           | URL                     |
+|------------|---------------------------------------|-------------------------|
+| Tinkerbell | Bare metal machines provisioning tool | https://tinkerbell.org/ |
 
 ## Content
 
