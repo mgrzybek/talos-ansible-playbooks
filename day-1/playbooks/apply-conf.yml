@@ -10,7 +10,7 @@
     generic_machineconfig: controlplane.yaml
 
   tasks:
-  - name: Applying configuration | _includeing tasks
+  - name: Applying configuration | Including tasks
     include_tasks: '{{ inventory_dir }}/tasks/apply-host-conf.yml'
 
 ###############################################################################
@@ -25,5 +25,5 @@
     generic_machineconfig: worker.yaml
 
   tasks:
-  - name: Applying configuration | _includeing tasks
+  - name: Applying configuration | Including tasks
     include_tasks: '{{ inventory_dir }}/tasks/apply-host-conf.yml'
