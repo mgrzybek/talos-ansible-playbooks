@@ -18,6 +18,7 @@ cluster-shutdown                    Stop the nodes but keep the current configur
 help                                This help message
 rook-ceph-cluster                   Deploy a ceph cluster
 rook-ceph-operator                  Install Rook operator for Ceph
+tinkerbell                          Install tinkerbell metal-as-a-service
 $
 ```
 
@@ -80,4 +81,14 @@ $ kubectl get storageclass
 NAME              PROVISIONER                  RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE
 rook-ceph-block   rook-ceph.rbd.csi.ceph.com   Delete          Immediate           true                   2m48s
 $
+```
+
+## Install middlewares
+
+### Tinkerbell
+
+The container named `ghcr.io/jacobweinstock/dhcrelay` is uncompatible with ARM64 platformms. As a consequence it is replaced by `docker.io/mrdojojo/dhcrelay` if ARM64 nodes are detected..
+
+```console
+$ make tinkerbell
 ```

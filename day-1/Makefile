@@ -94,7 +94,7 @@ rook-ceph-cluster: rook-ceph-operator cilium-l2 ## Deploy a ceph cluster
 	git clone https://github.com/tinkerbell/charts /tmp/tink-charts
 
 .PHONY: tinkerbell
-tinkerbell: cilium-l2 /tmp/tink-charts
+tinkerbell: cilium-l2 /tmp/tink-charts ## Install tinkerbell metal-as-a-service
 	$(ANSIBLE_PLAYBOOK) playbooks/tinkerbell.yml
 
 ##############################################################################
