@@ -12,16 +12,21 @@ ANSIBLE_OPTS=-i ../inventory.ini $(LIMIT_OPTS) $(VERBOSE_OPTS)
 
 ANSIBLE_PLAYBOOK=ansible-playbook $(ANSIBLE_OPTS)
 
+WHICH=which -s
+
 ##############################################################################
 # Files to watch
 
 ../controlplane.yaml:
+	$(WHICH) helm
 	$(ANSIBLE_PLAYBOOK) playbooks/gen-conf.yml
 
 ../worker.yaml:
+	$(WHICH) helm
 	$(ANSIBLE_PLAYBOOK) playbooks/gen-conf.yml
 
 ../talosconfig:
+	$(WHICH) helm
 	$(ANSIBLE_PLAYBOOK) playbooks/gen-conf.yml
 
 ##############################################################################
@@ -50,11 +55,15 @@ cluster-shutdown: ## Stop the nodes but keep the current configuration
 
 .PHONY: cluster-cneate
 cluster-create: ## Create a cluster
+	$(WHICH) helm
+	$(WHICH) talosctl
+	test -f ../group_vars/all.yml
+	test -f ../group_vars/controlplane.yml
+	test -f ../group_vars/worker.yml
 	@$(MAKE) ../controlplane.yaml
 	@$(MAKE) apply-conf LIMIT=controlplane
 	@$(MAKE) bootstrap
 	@$(MAKE) apply-conf LIMIT=worker
-
 
 ##############################################################################
 # LoadBalancer configuration
