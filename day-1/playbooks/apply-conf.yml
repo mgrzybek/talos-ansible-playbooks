@@ -1,29 +1,23 @@
-###############################################################################
-# Controlplane
-
-- hosts: controlplane
+- hosts: all
   gather_facts: no
   become: false
   serial: 1
 
-  vars:
-    generic_machineconfig: controlplane.yaml
-
   tasks:
-  - name: Applying configuration | Including tasks
-    include_tasks: '{{ inventory_dir }}/tasks/apply-host-conf.yml'
+  - name: Applying configuration | Check if the cluster has already been bootstrapped
+    delegate_to: localhost
+    run_once: true
+    register: kube_context
+    failed_when: false
+    changed_when: false
+    ansible.builtin.shell: |
+      kubectl config get-contexts | awk '{print $1,$3}' | fgrep '* {{ cluster_name}}'
 
-###############################################################################
-# Worker
+  - name: Applying configuration | Check if the cluster has already been bootstrapped
+    assert:
+      that: kube_context is failure
+      fail_msg: |
+        The cluster has already been deployed. Switch to '../day-2' operations directory and use 'add-nodes' target.
 
-- hosts: worker
-  gather_facts: no
-  become: false
-  serial: 1
-
-  vars:
-    generic_machineconfig: worker.yaml
-
-  tasks:
   - name: Applying configuration | Including tasks
     include_tasks: '{{ inventory_dir }}/tasks/apply-host-conf.yml'
