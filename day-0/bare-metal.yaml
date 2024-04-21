@@ -1,4 +1,3 @@
 customization:
   systemExtensions:
-    officialExtensions:
-    - siderolabs/gvisor
+    officialExtensions: []

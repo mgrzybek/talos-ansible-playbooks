@@ -2,8 +2,8 @@ ifndef TALOS_FACTORY_URL ## Talos Factory URL (https://factory.talos.dev/image)
 	TALOS_FACTORY_URL=https://factory.talos.dev
 endif
 
-ifndef TALOS_VERSION ## Talos version to use (v1.6.2)
-	TALOS_VERSION=v1.6.2
+ifndef TALOS_VERSION ## Talos version to use (using talosctl version by default)
+	TALOS_VERSION=$(shell talosctl version 2>/dev/null | awk '/Tag/ {print $$NF}')
 endif
 
 DRAWIO_BIN=draw.io
@@ -22,12 +22,12 @@ schematic.json: ## Get schematic json data from the talos factory
 metal-amd64.iso: schematic.json ## Download amd64 iso from the talos factory
 	$(WHICH) jq
 	$(WHICH) wget
-	wget $(TALOS_FACTORY_URL)/image/$(shell cat schematic.json | jq -r ".id")/$(TALOS_VERSION)/metal-amd64.iso 
+	wget $(TALOS_FACTORY_URL)/image/$(shell cat schematic.json | jq -r ".id")/$(TALOS_VERSION)/metal-amd64.iso
 
 metal-arm64.iso: schematic.json ## Download arm64 iso from the talos factory
 	$(WHICH) jq
 	$(WHICH) wget
-	wget $(TALOS_FACTORY_URL)/image/$(shell cat schematic.json | jq -r ".id")/$(TALOS_VERSION)/metal-arm64.iso 
+	wget $(TALOS_FACTORY_URL)/image/$(shell cat schematic.json | jq -r ".id")/$(TALOS_VERSION)/metal-arm64.iso
 
 architecture.svg: architecture.drawio ## Create architecture
 	$(WHICH) $(DRAWIO_BIN)
