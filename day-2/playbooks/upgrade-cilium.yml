@@ -22,6 +22,7 @@
   - name: Upgrading Cilium | Setting facts
     set_fact:
       current_version: '{{ result.stdout }}'
+
   - name: Upgrading Cilium | Check versions
     assert:
       that: cilium.version > current_version
@@ -59,6 +60,7 @@
     kubernetes.core.k8s:
       state: present
       definition: '{{ result.stdout | from_yaml }}'
+
   - name: Upgrading Cilium | Waiting for the CNI to be ready
     delegate_to: localhost
     run_once: true

@@ -9,7 +9,6 @@ ifdef VERBOSE ## Set ansible in verbose mode (bool)
 endif
 
 ANSIBLE_OPTS=-i ../inventory.ini \
-	-e cluster_name=$(CLUSTER_NAME) \
 	$(LIMIT_OPTS) $(VERBOSE_OPTS)
 
 ANSIBLE_PLAYBOOK=ansible-playbook $(ANSIBLE_OPTS)
