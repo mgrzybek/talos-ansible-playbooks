@@ -53,7 +53,7 @@ cluster-reset: ## Reset the cluster (nodes are wiped, kubectl context removed)
 cluster-shutdown: ## Stop the nodes but keep the current configuration
 	$(ANSIBLE_PLAYBOOK) playbooks/shutdown.yml
 
-.PHONY: cluster-cneate
+.PHONY: cluster-create
 cluster-create: ## Create a cluster
 	$(WHICH) helm
 	$(WHICH) talosctl
@@ -61,9 +61,9 @@ cluster-create: ## Create a cluster
 	test -f ../group_vars/controlplane.yml
 	test -f ../group_vars/worker.yml
 	@$(MAKE) ../controlplane.yaml
-	@$(MAKE) apply-conf LIMIT=controlplane
+	@$(MAKE) apply-conf
 	@$(MAKE) bootstrap
-	@$(MAKE) apply-conf LIMIT=worker
+	@$(MAKE) -C ../day-2 add-nodes
 
 ##############################################################################
 # LoadBalancer configuration
@@ -84,6 +84,7 @@ rook-ceph-operator: ## Install Rook operator for Ceph
 .PHONY: rook-ceph-cluster
 rook-ceph-cluster: rook-ceph-operator cilium-l2 ## Deploy a ceph cluster
 	$(ANSIBLE_PLAYBOOK) playbooks/ceph-cluster.yml
+	kubectl rook-ceph health
 
 ##############################################################################
 # Metal-as-a-Service targets

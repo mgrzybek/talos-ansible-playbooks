@@ -20,7 +20,4 @@
   - name: Reset | Remove the kubectl context
     run_once: true
     delegate_to: localhost
-    ansible.builtin.command: kubectl config unset {{ item }}
-    with_items:
-    - clusters.{{ cluster_name }}
-    - contexts.admin@{{ cluster_name }}
+    ansible.builtin.command: kubectl config delete-context admin@{{ cluster_name }}
