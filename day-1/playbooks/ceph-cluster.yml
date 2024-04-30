@@ -66,3 +66,26 @@
             mgr_role: active
             rook_cluster: rook-ceph
           type: LoadBalancer
+
+  - name: Ceph Cluster | Create a testing PVC
+    delegate_to: localhost
+    register: result
+    ansible.builtin.command: kubectl apply -f {{ inventory_dir }}/day-1/manifests/rook.test.yaml --wait=true
+    changed_when: pool.stdout | regex_search("configured")
+
+  - name: Ceph Cluster | Get PVC info
+    delegate_to: localhost
+    register: pvc
+    ansible.builtin.shell: kubectl -n testing get pvc -o yaml | yq '.items[0].status.phase'
+    changed_when: false
+
+  - name: Ceph Cluster | Assert PVC info
+    assert:
+      that: pvc.stdout == "Bound"
+      fail_msg: The testing PVC should be bounded
+
+  - name: Ceph Cluster | Delete the testing PVC
+    delegate_to: localhost
+    register: result
+    ansible.builtin.command: kubectl delete -f {{ inventory_dir }}/day-1/manifests/rook.test.yaml --wait=true
+    changed_when: pool.stdout | regex_search("deleted")
