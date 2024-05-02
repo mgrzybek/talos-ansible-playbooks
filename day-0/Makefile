@@ -9,7 +9,7 @@ endif
 DRAWIO_BIN=draw.io
 DRAWIO=$(DRAWIO_BIN) --export --embed-svg-images
 
-WHICH=which -s
+WHICH=$(shell uname -s | fgrep Linux && echo "which" || echo "which -s")
 
 architecture.drawio:
 workflow.drawio:
@@ -17,11 +17,13 @@ workflow.drawio:
 schematic.json: ## Get schematic json data from the talos factory
 	$(WHICH) curl
 	$(WHICH) tee
+	$(WHICH) talosctl
 	curl -X POST --data-binary @bare-metal.yaml $(TALOS_FACTORY_URL)/schematics | tee schematic.json
 
 metal-amd64.iso: schematic.json ## Download amd64 iso from the talos factory
 	$(WHICH) jq
 	$(WHICH) wget
+	$(WHICH) talosctl
 	wget $(TALOS_FACTORY_URL)/image/$(shell cat schematic.json | jq -r ".id")/$(TALOS_VERSION)/metal-amd64.iso
 
 metal-arm64.iso: schematic.json ## Download arm64 iso from the talos factory

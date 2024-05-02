@@ -33,6 +33,21 @@ The ansible group files are there:
 └─── inventory.ini
 ```
 
+## Required tools
+
+```bash
+ansible-playbook # Running the playbooks
+curl             # Getting artifacts
+git              # Cloning remote repositories
+helm             # Creating template and installing middlewares
+jq               # Extracting data
+kubectl          # Managing Kubernetes
+talosctl         # Managing Talos Linux
+tee              # Log management
+wget             # Getting artifacts
+yq               # Extracting data
+```
+
 ## Workflow
 
 ![Simple workflow](workflow.svg)
