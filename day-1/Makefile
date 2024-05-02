@@ -63,6 +63,7 @@ cluster-shutdown: ## Stop the nodes but keep the current configuration
 .PHONY: cluster-create
 cluster-create: ## Create a cluster
 	$(WHICH) helm
+	$(WHICH) kubectl
 	$(WHICH) talosctl
 	test -f ../group_vars/all.yml
 	test -f ../group_vars/controlplane.yml
