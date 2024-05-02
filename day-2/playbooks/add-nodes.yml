@@ -11,7 +11,10 @@
     changed_when: false
     delegate_to: localhost
     register: members
-    ansible.builtin.shell: set -o pipefail && kubectl get nodes -o wide | awk '{print $6}'
+    ansible.builtin.shell:
+      cmd: |
+        set -o pipefail
+        kubectl get nodes -o wide | awk '{print $6}'
 
   - name: Adding new nodes | Setting facts
     set_fact:
