@@ -47,7 +47,7 @@ $ make cluster-shutdown
 Two sets of objecs will be created: `CiliumLoadBalancerIPPool` and `CiliumL2AnnouncementPolicy`:
 
 ```console
-$ make ciliun-l2 # Cilium L2 announcements
+$ make cilium-l2 # Cilium L2 announcements
 ```
 
 Let’s check that they exist:
