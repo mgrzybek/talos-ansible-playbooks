@@ -12,7 +12,7 @@ spec:
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: rook-ceph-block-two-copies
+  name: ceph-two-copies
   annotations:
     storageclass.kubernetes.io/is-default-class: true
 # Change "rook-ceph" provisioner prefix to match the operator namespace if needed
