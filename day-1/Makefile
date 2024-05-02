@@ -12,20 +12,23 @@ ANSIBLE_OPTS=-i ../inventory.ini $(LIMIT_OPTS) $(VERBOSE_OPTS)
 
 ANSIBLE_PLAYBOOK=ansible-playbook $(ANSIBLE_OPTS)
 
-WHICH=which -s
+WHICH=$(shell uname -s | fgrep Linux && echo "which" || echo "which -s")
 
 ##############################################################################
 # Files to watch
 
 ../controlplane.yaml:
+	$(WHICH) ansible-playbook
 	$(WHICH) helm
 	$(ANSIBLE_PLAYBOOK) playbooks/gen-conf.yml
 
 ../worker.yaml:
+	$(WHICH) ansible-playbook
 	$(WHICH) helm
 	$(ANSIBLE_PLAYBOOK) playbooks/gen-conf.yml
 
 ../talosconfig:
+	$(WHICH) ansible-playbook
 	$(WHICH) helm
 	$(ANSIBLE_PLAYBOOK) playbooks/gen-conf.yml
 
@@ -34,18 +37,22 @@ WHICH=which -s
 
 .PHONY: bootstrap
 bootstrap:
+	$(WHICH) ansible-playbook
 	$(ANSIBLE_PLAYBOOK) playbooks/bootstrap.yml
 
 .PHONY: apply-conf
 apply-conf:
+	$(WHICH) ansible-playbook
 	$(ANSIBLE_PLAYBOOK) playbooks/apply-conf.yml
 
 .PHONY: health
 health:
+	$(WHICH) ansible-playbook
 	$(ANSIBLE_PLAYBOOK) playbooks/health.yml
 
 .PHONY: cluster-reset
 cluster-reset: ## Reset the cluster (nodes are wiped, kubectl context removed)
+	$(WHICH) ansible-playbook
 	$(ANSIBLE_PLAYBOOK) playbooks/reset.yml
 	rm -f ../talosconfig ../worker.yaml ../controlplane.yaml ../*.host.yaml
 
@@ -69,6 +76,7 @@ cluster-create: ## Create a cluster
 # LoadBalancer configuration
 .PHONY: cilium-l2
 cilium-l2: ## Deploy Cilium L2 CiliumLoadBalancerIPPool and CiliumL2AnnouncementPolicy
+	$(WHICH) ansible-playbook
 	$(ANSIBLE_PLAYBOOK) playbooks/cilium-l2.yml
 
 ##############################################################################
@@ -76,6 +84,7 @@ cilium-l2: ## Deploy Cilium L2 CiliumLoadBalancerIPPool and CiliumL2Announcement
 
 .PHONY: rook-ceph-operator
 rook-ceph-operator: ## Install Rook operator for Ceph
+	$(WHICH) kubectl
 	kubectl apply -f manifests/rook.common.yaml
 	kubectl patch namespace rook-ceph -p '{ "metadata": { "labels": { "pod-security.kubernetes.io/enforce": "privileged" } } }'
 	kubectl apply -f manifests/rook.crds.yaml -f manifests/rook.operator.yaml
@@ -83,6 +92,7 @@ rook-ceph-operator: ## Install Rook operator for Ceph
 
 .PHONY: rook-ceph-cluster
 rook-ceph-cluster: rook-ceph-operator cilium-l2 ## Deploy a ceph cluster
+	$(WHICH) ansible-playbook
 	$(ANSIBLE_PLAYBOOK) playbooks/ceph-cluster.yml
 	kubectl rook-ceph health
 
@@ -92,10 +102,12 @@ rook-ceph-cluster: rook-ceph-operator cilium-l2 ## Deploy a ceph cluster
 ## Tinkerbell
 
 /tmp/tink-charts:
+	$(WHICH) git
 	git clone https://github.com/tinkerbell/charts /tmp/tink-charts
 
 .PHONY: tinkerbell
 tinkerbell: cilium-l2 /tmp/tink-charts ## Install tinkerbell metal-as-a-service
+	$(WHICH) ansible-playbook
 	$(ANSIBLE_PLAYBOOK) playbooks/tinkerbell.yml
 
 ##############################################################################
