@@ -37,6 +37,11 @@ workflow.svg: workflow.drawio ## Create workflow
 	$(WHICH) $(DRAWIO_BIN)
 	$(DRAWIO) --output workflow.svg workflow.drawio
 
+.PHONY: clean
+clean: ## Remove the downloaded artifacts
+	rm -f *.iso
+	rm -f schematic.json
+
 ##############################################################################
 # Help
 
