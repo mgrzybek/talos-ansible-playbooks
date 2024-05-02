@@ -9,9 +9,16 @@
       - cluster_name is defined
       - cluster_name | length > 0
 
+  - name: Reset | Get the kubectl context
+    register: result
+    run_once: true
+    delegate_to: localhost
+    ansible.builtin.shell: kubectl config get-contexts | awk '/{{ cluster_name }}/ {print $2}'
+
   - name: Reset | Set facts
     set_fact:
       talosctl_opts: --nodes {{ inventory_hostname }} --endpoints {{ inventory_hostname }} --talosconfig={{ inventory_dir }}/talosconfig
+      contexts: '{{ result.stdout_lines }}'
 
   - name: Reset | Reset the node and reboot to a non-configured state
     delegate_to: localhost
@@ -20,4 +27,5 @@
   - name: Reset | Remove the kubectl context
     run_once: true
     delegate_to: localhost
-    ansible.builtin.command: kubectl config delete-context admin@{{ cluster_name }}
+    ansible.builtin.command: kubectl config delete-context {{ item }}
+    with_items: '{{ contexts }}'
