@@ -3,7 +3,7 @@ ifndef TALOS_FACTORY_URL ## Talos Factory URL (https://factory.talos.dev/image)
 endif
 
 ifndef TALOS_VERSION ## Talos version to use (using talosctl version by default)
-	TALOS_VERSION=$(shell talosctl version 2>/dev/null | awk '/Tag/ {print $$NF}')
+	TALOS_VERSION=$(shell talosctl version 2>/dev/null | awk '/Tag/ {print $$NF}' | head -n1)
 endif
 
 DRAWIO_BIN=draw.io
