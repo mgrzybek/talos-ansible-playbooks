@@ -35,6 +35,8 @@ The ansible group files are there:
 
 ## Required tools
 
+### Binaries
+
 ```bash
 ansible-playbook # Running the playbooks
 curl             # Getting artifacts
@@ -47,6 +49,13 @@ tee              # Log management
 wget             # Getting artifacts
 yq               # Extracting data
 ```
+
+### Kubectl plugins
+
+| Plugin              | URL                                                                      |
+| ------------------- | ------------------------------------------------------------------------ |
+| Krew plugin manager | https://krew.sigs.k8s.io/docs/user-guide/setup/install/                  |
+| Rook-Ceph plugin    | https://rook.io/docs/rook/latest-release/Troubleshooting/kubectl-plugin/ |
 
 ## Workflow
 

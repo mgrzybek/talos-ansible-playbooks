@@ -7,43 +7,61 @@
     set_fact:
       sidero_metallb_manifest: ../manifests/sidero-metallb.service.yaml
       clusterctl_manifests:
-      - ../manifests/bootstrap.clusterctl.yaml
-      - ../manifests/controlplante.clusterctl.yaml
-      - ../manifests/infrastructure.clusterctl.yaml
+      - bootstrap.clusterctl.yaml
+      - controlplane.clusterctl.yaml
+      - infrastructure.clusterctl.yaml
 
   - name: Sidero | Check variables
     assert:
       fail_msg: The required env variables must be set
       that:
-      - api_endpoint_ipaddr | length > 0
-      - siderolink_endpoint_ipaddr | length > 0
+      - sidero.api_endpoint_ipaddr | length > 0
+      - sidero.api_endpoint_ipaddr is defined
+      - sidero.siderolink_endpoint_ipaddr | length > 0
+      - sidero.siderolink_endpoint_ipaddr is defined
 
   - name: Sidero | Create the resources using clusterctl
-    with_items: '{{ clusterctl_manifests }}'
     delegate_to: localhost
-    kubernetes.core.k8s:
-      state: present
-      src: '{{ item }}'
+    ansible.builtin.command: clusterctl init -b talos -c talos -i sidero
+    environment:
+      SIDERO_CONTROLLER_MANAGER_HOST_NETWORK: true
+      SIDERO_CONTROLLER_MANAGER_DEPLOYMENT_STRATEGY: RollingUpdate
+      SIDERO_CONTROLLER_MANAGER_API_ENDPOINT: '{{ sidero.api_endpoint_ipaddr }}'
+      SIDERO_CONTROLLER_MANAGER_API_PORT: 8081
+      SIDERO_CONTROLLER_MANAGER_CONTAINER_API_PORT: 8081
+      SIDERO_CONTROLLER_MANAGER_SIDEROLINK_ENDPOINT: '{{ sidero.siderolink_endpoint_ipaddr }}'
+      SIDERO_CONTROLLER_MANAGER_SIDEROLINK_PORT: 51821
+      SIDERO_CONTROLLER_MANAGER_EXTRA_AGENT_KERNEL_ARGS:
+      SIDERO_CONTROLLER_MANAGER_AUTO_ACCEPT_SERVERS: false
+      SIDERO_CONTROLLER_MANAGER_AUTO_BMC_SETUP: true
+      SIDERO_CONTROLLER_MANAGER_INSECURE_WIPE: true
+      SIDERO_CONTROLLER_MANAGER_SERVER_REBOOT_TIMEOUT: 20m
+      SIDERO_CONTROLLER_MANAGER_IPMI_PXE_METHOD: uefi
+      SIDERO_CONTROLLER_MANAGER_BOOT_FROM_DISK_METHOD: ipxe-sanboot
+      SIDERO_CONTROLLER_MANAGER_DISABLE_DHCP_PROXY: false
+#    with_items:
+#  	- clusterctl generate provider --bootstrap talos > {{ inventory_dir }}/day-1/manifests/bootstrap.clusterctl.yaml
+#	  - clusterctl generate provider --control-plane talos > {{ inventory_dir }}/day-1/manifests/controlplane.clusterctl.yaml
+#	  - clusterctl generate provider --infrastructure sidero > {{ inventory_dir }}/day-1/manifests/infrastructure.clusterctl.yaml
 
-  - name: Sidero | Declare the Sidero Metal
+#  - name: Sidero | Create the resources using clusterctl
+#    with_items: '{{ clusterctl_manifests }}'
+#    delegate_to: localhost
+#    register: clusterctl
+#    ansible.builtin.command: kubectl apply -f {{ inventory_dir }}/day-1/manifests/{{ item }} --wait=true
+#    changed_when: clusterctl.stdout | regex_search("configured")
+
+  - name: Sidero | Wait for the pods to be started
+    until: bootstrap.stdout_lines | length == 1
+    delay: '{{ waiting_time_minutes * 60 }}'
+    retries: 30
+    register: bootstrap
     delegate_to: localhost
-    kubernetes.core.k8s:
-      state: present
-      definition:
-        apiVersion: cilium.io/v2alpha1
-        kind: CiliumLoadBalancerIPPool
-        metadata:
-          name: core-pool
-          namespace: kube-system
-        spec:
-          blocks:
-          - cidr: '{{ siderolink_endpoint_ipaddr }}'
-          - cidr: '{{ api_endpoint_ipaddr }}'
-          serviceSelector:
-            matchLabels:
-              serviceType: sidero-metal
+    ansible.builtin.shell: kubectl -n sidero-system get pods | awk '!/NAME/ {print $3}' | sort -u
+    failed_when: false
+    changed_when: false
 
-  - name: Sidero | Patch the services to use Cilium L2
+  - name: Sidero | Create load balancer for sidero metal
     delegate_to: localhost
     kubernetes.core.k8s:
       state: present
@@ -51,28 +69,56 @@
         apiVersion: v1
         kind: Service
         metadata:
-          name: '{{ item.name }}'
+          annotations:
+            io.cilium/lb-ipam-ips: '{{ sidero.api_endpoint_ipaddr }}'
+          name: sidero-system
           namespace: sidero-system
           labels:
-            serviceType: sidero-metal
+            serviceType: core
         spec:
           ports:
-          - port: '{{ item.port }}'
-            targetPort: '{{ item.port }}'
+          - name: sidero-webhook
+            protocol: TCP
+            port: 443
+            targetPort: 443
+          - name: sidero-http
+            protocol: TCP
+            port: 8081
+            targetPort: 8081
+          - name: sidero-dhcp
+            protocol: UDP
+            port: 67
+            targetPort: 67
+          - name: sidero-tftp
+            protocol: UDP
+            port: 69
+            targetPort: 69
           selector:
             app: sidero
             control-plane: sidero-controller-manager
           type: LoadBalancer
-    with_items:
-    - name: sidero-webhook
-      port: 443
-    - name: sidero-http
-      port: 8081
-      cluster_ip: '{{ api_endpoint_ipaddr }}'
-    - name: sidero-dhcp
-      port: 67
-    - name: sidero-tftp
-      port: 69
-    - name: sidero-siderolink
-      port: 51821
-      cluster_ip: '{{ siderolink_endpoint_ipaddr }}'
+
+  - name: Sidero | Create load balancer for siderolink
+    delegate_to: localhost
+    kubernetes.core.k8s:
+      state: present
+      definition:
+        apiVersion: v1
+        kind: Service
+        metadata:
+          annotations:
+            io.cilium/lb-ipam-ips: '{{ sidero.siderolink_endpoint_ipaddr }}'
+          name: sidero-siderolink
+          namespace: sidero-system
+          labels:
+            serviceType: core
+        spec:
+          ports:
+          - name: sidero-siderolink
+            protocol: UDP
+            port: 51821
+          selector:
+            app: sidero
+            control-plane: sidero-controller-manager
+          type: LoadBalancer
+

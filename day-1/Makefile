@@ -93,6 +93,7 @@ rook-ceph-operator: ## Install Rook operator for Ceph
 
 .PHONY: rook-ceph-cluster
 rook-ceph-cluster: rook-ceph-operator cilium-l2 ## Deploy a ceph cluster
+	kubectl krew list | fgrep -q rook-ceph
 	$(WHICH) ansible-playbook
 	$(ANSIBLE_PLAYBOOK) playbooks/ceph-cluster.yml
 	kubectl rook-ceph health

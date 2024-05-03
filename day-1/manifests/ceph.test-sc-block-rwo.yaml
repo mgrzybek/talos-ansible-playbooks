@@ -16,4 +16,4 @@ spec:
   resources:
     requests:
       storage: 1Gi
-  storageClassName: ceph-two-copies
+  storageClassName: rook-ceph-block

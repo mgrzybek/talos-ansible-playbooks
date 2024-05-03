@@ -18,17 +18,15 @@
   - name: Ceph Cluster | Wait for the cluster to be started
     until: (bootstrap.stdout | from_yaml).status.phase == "Ready"
     delay: '{{ waiting_time_minutes * 60 }}'
-    retries: '{{ nodes.stdout_lines | length - 1 }}'
     register: bootstrap
     delegate_to: localhost
     ansible.builtin.command: kubectl -n rook-ceph get CephCluster rook-ceph -o yaml
-    failed_when: false
     changed_when: false
 
-  - name: Ceph Cluster | Create the pool
+  - name: Ceph Cluster | Create the block storage RWO pool and storage class
     delegate_to: localhost
     register: pool
-    ansible.builtin.command: kubectl apply -f {{ inventory_dir }}/day-1/manifests/rook.pool.yaml --wait=true
+    ansible.builtin.command: kubectl apply -f {{ inventory_dir }}/day-1/manifests/ceph.storage-class-block-rwo.yaml --wait=true
     changed_when: pool.stdout | regex_search("configured")
 
   - name: Ceph Cluster | Create the Cilium L2 Load Balancer for the manager
@@ -70,8 +68,8 @@
   - name: Ceph Cluster | Create a testing PVC
     delegate_to: localhost
     register: result
-    ansible.builtin.command: kubectl apply -f {{ inventory_dir }}/day-1/manifests/rook.test.yaml --wait=true
-    changed_when: pool.stdout | regex_search("configured")
+    ansible.builtin.command: kubectl apply -f {{ inventory_dir }}/day-1/manifests/ceph.test-sc-block-rwo.yaml --wait=true
+    changed_when: pool.stdout | regex_search("created")
 
   - name: Ceph Cluster | Get PVC info
     delegate_to: localhost
@@ -87,5 +85,5 @@
   - name: Ceph Cluster | Delete the testing PVC
     delegate_to: localhost
     register: result
-    ansible.builtin.command: kubectl delete -f {{ inventory_dir }}/day-1/manifests/rook.test.yaml --wait=true
+    ansible.builtin.command: kubectl delete -f {{ inventory_dir }}/day-1/manifests/ceph.test-sc-block-rwo.yaml --wait=true
     changed_when: pool.stdout | regex_search("deleted")
