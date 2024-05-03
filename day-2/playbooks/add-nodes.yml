@@ -9,6 +9,7 @@
   tasks:
   - name: Adding new nodes | Get cluster members
     changed_when: false
+    failed_when: members.stdout_lines | length == 0
     delegate_to: localhost
     register: members
     ansible.builtin.shell:
