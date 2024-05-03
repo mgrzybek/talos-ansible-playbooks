@@ -9,7 +9,7 @@ endif
 DRAWIO_BIN=draw.io
 DRAWIO=$(DRAWIO_BIN) --export --embed-svg-images
 
-WHICH=$(shell uname -s | fgrep Linux && echo "which" || echo "which -s")
+WHICH=$(shell uname -s | fgrep -q Linux && echo "which" || echo "which -s")
 
 architecture.drawio:
 workflow.drawio:
