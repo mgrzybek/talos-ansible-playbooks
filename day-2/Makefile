@@ -15,6 +15,8 @@ ANSIBLE_PLAYBOOK=ansible-playbook $(ANSIBLE_OPTS)
 
 KUBECTL_DELETE=kubectl delete --wait=true
 
+WHICH=$(shell uname -s | fgrep -q Linux && echo "which" || echo "which -s")
+
 check_defined = \
 	$(strip $(foreach 1,$1, \
 		$(call __check_defined,$1,$(strip $(value 2)))))
@@ -33,25 +35,24 @@ add-nodes: ## Add new nodes to the cluster
 	test -f ../controlplane.yaml
 	test -f ../worker.yaml
 	test -f ../talosconfig
+	$(WHICH) ansible-playbook
 	$(ANSIBLE_PLAYBOOK) playbooks/add-nodes.yml
 
 .PHONY: upgrade-k8s
 upgrade-k8s: ## Upgrade k8s to the given version (KUBERNETES_VERSION)
+	$(WHICH) ansible-playbook
 	$(ANSIBLE_PLAYBOOK) playbooks/upgrade-k8s.yml -e kubernetes_version=$(KUBERNETES_VERSION)
 
 .PHONY: upgrade-cilium
 upgrade-cilium: ## Upgrade cilium cni to the given vension
-	which cilium
+	$(WHICH) cilium
+	$(WHICH) ansible-playbook
 	$(ANSIBLE_PLAYBOOK) playbooks/upgrade-cilium.yml
 
-.PHONY: remove-node
-remove-node: ## Remove a node from the cluster (NODE_IP, NODE_NAME)
-	@$(call check_defined NODE_IP)
-	@$(call check_defined NODE_NAME)
-
-	talosctl -n $(NODE_IP) -e $(NODE_IP) reset --talosconfig=../talosconfig
-	kubectl remove node $(NODE_NAME)
-	rm -f ../$(NODE_IP).host.yaml
+.PHONY: remove-nodes
+remove-nodes: ## Remove nodes deleted from the inventory
+	$(WHICH) ansible-playbook
+	$(ANSIBLE_PLAYBOOK) playbooks/remove-nodes.yml
 
 ##############################################################################
 # Removing services
@@ -60,22 +61,22 @@ remove-node: ## Remove a node from the cluster (NODE_IP, NODE_NAME)
 remove-rook-ceph: ## Remove Rook operator for Ceph
 	kubectl --namespace rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"cleanupPolicy":{"confirmation":"yes-really-remove-data"}}}'
 
-	kubectl delete storageclasses ceph-block ceph-bucket ceph-filesystem
+	$(KUBECTL_DELETE) storageclasses ceph-block ceph-bucket ceph-filesystem
 
-	kubectl --namespace rook-ceph delete cephblockpools ceph-blockpool
-	kubectl --namespace rook-ceph delete cephobjectstore ceph-objectstore
-	kubectl --namespace rook-ceph delete cephfilesystem ceph-filesystem
-	kubectl --namespace rook-ceph delete cephcluster rook-ceph
+	$(KUBECTL_DELETE) --namespace rook-ceph cephblockpools ceph-blockpool
+	$(KUBECTL_DELETE) --namespace rook-ceph cephobjectstore ceph-objectstore
+	$(KUBECTL_DELETE) --namespace rook-ceph cephfilesystem ceph-filesystem
+	$(KUBECTL_DELETE) --namespace rook-ceph cephcluster rook-ceph
 
-	kubectl --namespace rook-ceph delete -f ../day-1/manifests/rook.cluster.yaml
-	kubectl --namespace rook-ceph delete -f ../day-1/manifests/rook.operator.yaml
-	kubectl --namespace rook-ceph delete -f ../day-1/manifests/rook.common.yaml
-	kubectl --namespace rook-ceph delete -f ../day-1/manifests/rook.crds.yaml
+	$(KUBECTL_DELETE) --namespace rook-ceph -f ../day-1/manifests/rook.cluster.yaml
+	$(KUBECTL_DELETE) --namespace rook-ceph -f ../day-1/manifests/rook.operator.yaml
+	$(KUBECTL_DELETE) --namespace rook-ceph -f ../day-1/manifests/rook.common.yaml
+	$(KUBECTL_DELETE) --namespace rook-ceph -f ../day-1/manifests/rook.crds.yaml
 
 .PHONY: remove-tinkerbell
 remove-tinkerbell: ## Remove Tinkerbell
-	kubectl delete ns tink-system --wait
-	kubectl delete crds \
+	$(KUBECTL_DELETE) ns tink-system
+	$(KUBECTL_DELETE) crds \
 		hardware.tinkerbell.org \
 		jobs.bmc.tinkerbell.org \
 		machines.bmc.tinkerbell.org \

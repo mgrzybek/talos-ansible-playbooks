@@ -1,0 +1,24 @@
+- name: Removing nodes | Get node name
+  delegate_to: localhost
+  ansible.builtin.shell: kubectl get nodes -o wide | awk '/{{ item }}/ {print $1}'
+  register: node_result
+  failed_when: node_result.stdout == ""
+  changed_when: false
+
+- name: Removing nodes | Get node name
+  set_fact:
+    node_name: '{{ node_result.stdout }}'
+
+- name: Removing nodes | Remove the node from kubernetes
+  delegate_to: localhost
+  ansible.builtin.command: kubectl delete node {{ node_name }} --wait
+
+- name: Removing nodes | Reset the operating system
+  delegate_to: localhost
+  ansible.builtin.command: talosctl {{ talosctl_opts }} -e {{ item }} -n {{ item }} reset --reboot --graceful
+
+- name: Removing nodes | Delete the machineconfig
+  delegate_to: localhost
+  ansible.builtin.file:
+    path: '{{ inventory_dir }}/{{ node_name }}.host.yaml'
+    state: absent

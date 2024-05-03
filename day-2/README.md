@@ -13,7 +13,7 @@ Targets
 =======
 add-nodes                      Add new nodes to the cluster
 help                           This help message
-remove-node                    Remove a node from the cluster (NODE_IP, NODE_NAME)
+remove-nodes                   Remove nodes deleted from the inventory
 remove-rook-ceph               Remove Rook operator for Ceph
 remove-tinkerbell              Remove Tinkerbell
 upgrade-k8s                    Upgrade k8s to the given version (KUBERNETES_VERSION)
@@ -29,12 +29,10 @@ $ vim ../inventory.ini # Add some nodes into the inventory
 $ make add-nodes
 ```
 
-Remove a node:
+Remove nodes:
 
 ```console
-$ kubectl get nodes -o wide # Pick up a node to remove
-$ export NODE_NAME=         # Set the name
-$ export NODE_IP=           # Set the IP address
+$ vim ../inventory.ini # Remove some nodes
 $ make remove-nodes
 ```
 

@@ -1,0 +1,28 @@
+- hosts: all
+  gather_facts: no
+  become: false
+  serial: 1
+
+  tasks:
+  - name: Removing nodes | Get cluster members
+    changed_when: false
+    failed_when: members.stdout_lines | length == 0
+    delegate_to: localhost
+    register: members
+    run_once: true
+    ansible.builtin.shell:
+      cmd: |
+        set -o pipefail
+        kubectl get nodes -o wide | awk '!/INTERNAL-IP/ {print $6}'
+
+  - name: Removing nodes | Setting facts
+    set_fact:
+      inventory_nodes: '{{ groups["all"] }}'
+      running_nodes: '{{ members.stdout_lines }}'
+      talosctl_opts: --talosconfig {{ inventory_dir }}/talosconfig
+
+  - name: Removing nodes | Remove the node if not part of the inventory anymore
+    with_items: '{{ running_nodes }}'
+    when: item not in inventory_nodes
+    include_tasks: '{{ inventory_dir }}/tasks/remove-node.yml'
+
