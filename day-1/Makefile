@@ -12,7 +12,7 @@ ANSIBLE_OPTS=-i ../inventory.ini $(LIMIT_OPTS) $(VERBOSE_OPTS)
 
 ANSIBLE_PLAYBOOK=ansible-playbook $(ANSIBLE_OPTS)
 
-WHICH=$(shell uname -s | fgrep Linux && echo "which" || echo "which -s")
+WHICH=$(shell uname -s | fgrep -q Linux && echo "which" || echo "which -s")
 
 ##############################################################################
 # Files to watch
