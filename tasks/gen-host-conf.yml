@@ -1,3 +1,18 @@
+- name: Configuration generation | Check files
+  delegate_to: localhost
+  register: generic_file
+  ansible.builtin.stat:
+    path: '{{ inventory_dir }}/{{ generic_machineconfig }}'
+
+- name: Configuration generation | Check variables
+  assert:
+    fail_msg: generic_machineconfig should point to either worker.yaml nor controlplane.yml
+    that:
+    - generic_machineconfig is defined
+    - generic_machineconfig | length > 0
+    - generic_file.stat.exists is true
+    - generic_file.stat.isreg is true
+
 - name: Configuration generation | Set facts
   set_fact:
     patch_dir: '{{ inventory_dir }}/day-1/patchs'
