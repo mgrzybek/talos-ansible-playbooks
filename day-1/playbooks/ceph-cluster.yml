@@ -74,8 +74,12 @@
   - name: Ceph Cluster | Get PVC info
     delegate_to: localhost
     register: pvc
-    ansible.builtin.shell: kubectl -n testing get pvc -o yaml | yq '.items[0].status.phase'
+    ansible.builtin.command: kubectl -n testing get pvc -o=jsonpath='{.items[0].status.phase}'
+    delay: 20
+    until: pvc.stdout == "Bound"
+    retries: 10
     changed_when: false
+    ignore_errors: true
 
   - name: Ceph Cluster | Assert PVC info
     assert:
