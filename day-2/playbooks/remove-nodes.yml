@@ -10,15 +10,17 @@
     delegate_to: localhost
     register: members
     run_once: true
-    ansible.builtin.shell:
-      cmd: |
-        set -o pipefail
-        kubectl get nodes -o wide | awk '!/INTERNAL-IP/ {print $6}'
+    ansible.builtin.command: kubectl get nodes -o=jsonpath='{.items..status.addresses[?(@.type=="InternalIP")].address}'
+
+  - name: Removing nodes | Check cluster members
+    assert:
+      that: members.stdout | length > 0
+      fail_msg: No node found using 'kubectl get nodes', please check your cluster.
 
   - name: Removing nodes | Setting facts
     set_fact:
       inventory_nodes: '{{ groups["all"] }}'
-      running_nodes: '{{ members.stdout_lines }}'
+      running_nodes: '{{ members.stdout | split(" ") }}'
       talosctl_opts: --talosconfig {{ inventory_dir }}/talosconfig
 
   - name: Removing nodes | Remove the node if not part of the inventory anymore
