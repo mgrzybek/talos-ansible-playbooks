@@ -31,7 +31,7 @@
   - name: Tinkerbell | Set fact
     set_fact:
       trusted_proxies: '{{ proxies.stdout_lines }}'
-      set_arm_images: '{% if architecture.stdout_lines | length >0 %}true{% else %}false {% endif %}'
+      set_arm_images: '{% if architecture.stdout_lines | length >0 %}true{% else %}false{% endif %}'
 
   - name: Tinkerbell | Create namespace
     delegate_to: localhost

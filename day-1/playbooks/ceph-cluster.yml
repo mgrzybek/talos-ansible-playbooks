@@ -69,13 +69,13 @@
     delegate_to: localhost
     register: result
     ansible.builtin.command: kubectl apply -f {{ inventory_dir }}/day-1/manifests/ceph.test-sc-block-rwo.yaml --wait=true
-    changed_when: pool.stdout | regex_search("created")
+    changed_when: result.stdout | regex_search("created")
 
   - name: Ceph Cluster | Get PVC info
     delegate_to: localhost
     register: pvc
     ansible.builtin.command: kubectl -n testing get pvc -o=jsonpath='{.items[0].status.phase}'
-    delay: 20
+    delay: 30
     until: pvc.stdout == "Bound"
     retries: 10
     changed_when: false
@@ -90,4 +90,4 @@
     delegate_to: localhost
     register: result
     ansible.builtin.command: kubectl delete -f {{ inventory_dir }}/day-1/manifests/ceph.test-sc-block-rwo.yaml --wait=true
-    changed_when: pool.stdout | regex_search("deleted")
+    changed_when: result.stdout | regex_search("deleted")
