@@ -35,6 +35,12 @@ The ansible group files are there:
 
 ## Required tools
 
+### Ansible modules
+
+| Module              | URL                                                                                 |
+|---------------------|-------------------------------------------------------------------------------------|
+| kubernetes.core.k8s | https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html |
+
 ### Binaries
 
 ```bash
