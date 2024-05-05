@@ -12,14 +12,12 @@
     failed_when: members.stdout_lines | length == 0
     delegate_to: localhost
     register: members
-    ansible.builtin.shell:
-      cmd: |
-        set -o pipefail
-        kubectl get nodes -o wide | awk '{print $6}'
+    run_once: true
+    ansible.builtin.command: kubectl get nodes -o=jsonpath='{.items..status.addresses[?(@.type=="InternalIP")].address}'
 
   - name: Adding new nodes | Setting facts
     set_fact:
-      nodes: '{{ members.stdout_lines | to_yaml }}'
+      nodes: '{{ members.stdout | split(" ") }}'
 
   - name: Adding new nodes | Configuring if not a member yet
     when: not inventory_hostname in nodes
