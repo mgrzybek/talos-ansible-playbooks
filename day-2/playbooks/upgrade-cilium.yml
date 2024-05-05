@@ -14,10 +14,15 @@
     run_once: true
     delegate_to: localhost
     register: result
-    ansible.builtin.command: |
+    ansible.builtin.shell: |
       kubectl get deploy -n kube-system  cilium-operator -o yaml \
         | yq ".spec.template.spec.containers[0].image" \
         | awk -F: '{gsub("v", "") ; gsub("@.+?","") ; print $2}'
+
+  - name: Upgrading Cilium | Check the current version
+    assert:
+      that: result.stdout | length > 2
+      fail_msg: Failed to get current cilium version
 
   - name: Upgrading Cilium | Setting facts
     set_fact:
@@ -48,11 +53,17 @@
         --set k8sServiceHost=localhost \
         --set k8sServicePort=7445 \
         --set l2announcements.enabled=true \
+        {% if cilium.l2 is defined -%}
         --set l2announcements.leaseDuration={{ cilium.l2.announcements.lease.duration }} \
         --set l2announcements.leaseRenewDeadline={{ cilium.l2.announcements.lease.renew_deadline }} \
         --set l2announcements.leaseRetryPeriod={{ cilium.l2.announcements.lease.retry_period }} \
+        {% endif -%}
+        {% if cilium.k8s_client_rate_limit is defined -%}
         --set k8sClientRateLimit.qps={{ cilium.k8s_client_rate_limit.qps }} \
-        --set k8sClientRateLimit.burst={{ cilium.k8s_client_rate_limit.burst }}
+        --set k8sClientRateLimit.burst={{ cilium.k8s_client_rate_limit.burst }} \
+        {% endif -%}
+        --set hubble.relay.enabled=true \
+        --set hubble.ui.enabled=true
 
   - name: Upgrading Cilium | Apply the manifest
     delegate_to: localhost
