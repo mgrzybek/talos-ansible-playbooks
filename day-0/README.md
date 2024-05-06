@@ -38,8 +38,12 @@ The ansible group files are there:
 ### Ansible modules
 
 | Module              | URL                                                                                 |
-|---------------------|-------------------------------------------------------------------------------------|
+| ------------------- | ----------------------------------------------------------------------------------- |
 | kubernetes.core.k8s | https://docs.ansible.com/ansible/latest/collections/kubernetes/core/k8s_module.html |
+
+```console
+$ make requirements # Installing the collection using ansible-galaxy
+```
 
 ### Binaries
 

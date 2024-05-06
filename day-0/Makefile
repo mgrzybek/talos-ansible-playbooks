@@ -44,6 +44,10 @@ clean: ## Remove the downloaded artifacts
 	rm -f *.iso
 	rm -f schematic.json
 
+.PHONY: requirements
+requirements:
+	ansible-galaxy install -r requirements.yml
+
 ##############################################################################
 # Help
 
