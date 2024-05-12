@@ -8,6 +8,9 @@ talosconfig
 schematic.json
 *.iso
 
+# Talos Linux extensions
+day-1/extensions/*.yaml
+
 # Ansible artifacts
 *.ini
 group_vars/*.yml

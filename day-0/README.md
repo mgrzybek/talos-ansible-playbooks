@@ -99,6 +99,11 @@ $  make metal-arm64.iso # Create the arm64 ISO image
 
 ## Configure the required variables
 
+### Extensions configuration
+
+In case you want to install and configure extensions, you should create your `ExtensionServiceConfig` YAML files in `day-0/extensions`.
+Please refer to https://github.com/siderolabs/extensions and https://www.youtube.com/watch?v=wjDtoe-CYoI for further details.
+
 ### Cluster name and Cilium version
 
 You must set a name to the cluster and set the cilium version to install. These attributes are present in `all.yaml`.

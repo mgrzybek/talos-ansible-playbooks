@@ -22,11 +22,23 @@
 - name: Adding new nodes | Set facts
   set_fact:
     manifest: '{{ inventory_dir }}/{% if result.stat.exists %}{{ inventory_hostname }}.host.yaml{% else %}{{ generic_machineconfig }}{% endif %}'
-    talosctl_opts: --insecure --talosconfig {{ inventory_dir }}/talosconfig  -n {{ inventory_hostname }}
+    talosctl_opts: --insecure --talosconfig {{ inventory_dir }}/talosconfig -n {{ inventory_hostname }}
+    talosctl_patch_opts: --talosconfig {{ inventory_dir }}/talosconfig -n {{ inventory_hostname }} -e {{ inventory_hostname }}
 
 - name: Adding new nodes | Applying the configuration to the new node
   delegate_to: localhost
   ansible.builtin.command: talosctl apply-config {{ talosctl_opts }} --file {{ manifest }}
+
+- name: Adding new nodes | Patch the machine configuration to add extensions
+  delegate_to: localhost
+  delay: 10
+  retries: 10
+  register: patch
+  until: patch is success
+  with_fileglob:
+  - "{{ inventory_dir }}/day-1/extensions/*.yml"
+  - "{{ inventory_dir }}/day-1/extensions/*.yaml"
+  ansible.builtin.command: talosctl patch mc {{ talosctl_patch_opts }} --patch @{{ item }}
 
 - name: Adding new nodes | Pause for {{ waiting_time_minutes }} minutes to let the machine download the images
   when:
