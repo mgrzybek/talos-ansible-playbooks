@@ -87,7 +87,7 @@ $
 
 ### Tinkerbell
 
-The container named `ghcr.io/jacobweinstock/dhcrelay` is uncompatible with ARM64 platformms. As a consequence it is replaced by `docker.io/mrdojojo/dhcrelay` if ARM64 nodes are detected..
+The container named `ghcr.io/jacobweinstock/dhcrelay` is uncompatible with ARM64 platforms. As a consequence it is replaced by `docker.io/mrdojojo/dhcrelay` if ARM64 nodes are detected.
 
 ```console
 $ make tinkerbell
