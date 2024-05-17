@@ -132,6 +132,7 @@ The disks should be declared properly, the given spec should be patched.
 ```yaml
 # day-1/manifests/rook.cluster.yaml
 ---
+
 spec:
   storage:
     useAllNodes: true
