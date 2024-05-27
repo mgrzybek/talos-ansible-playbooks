@@ -38,6 +38,14 @@ add-nodes: ## Add new nodes to the cluster
 	$(WHICH) ansible-playbook
 	$(ANSIBLE_PLAYBOOK) playbooks/add-nodes.yml
 
+.PHONY: cluster-shutdown
+cluster-shutdown: ## Stop the nodes but keep the current configuration
+	@$(MAKE) -C ../day-1 cluster-shutdown
+
+.PHONY: cluster-reset
+cluster-reset: ## Reset the cluster (nodes are wiped, kubectl context removed)
+	@$(MAKE) -C ../day-1 cluster-reset
+
 .PHONY: upgrade-k8s
 upgrade-k8s: ## Upgrade k8s to the given version (KUBERNETES_VERSION)
 	$(WHICH) ansible-playbook
