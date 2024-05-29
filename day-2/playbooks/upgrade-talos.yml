@@ -1,0 +1,50 @@
+- hosts: controlplane
+  gather_facts: no
+  become: false
+  serial: 1
+  tasks:
+  - name: Upgrading talos | Setting facts
+    set_fact:
+      talosctl_opts: --talosconfig={{ inventory_dir }}/talosconfig  -e {{ inventory_hostname }} -n {{ inventory_hostname }}
+
+  - name: Upgrade talos | Starting the upgrade
+    delegate_to: localhost
+    ansible.builtin.command: talosctl {{ talosctl_opts }} upgrade --preserve
+
+- hosts: worker
+  gather_facts: no
+  become: false
+  serial:
+  - 1
+  - 10%
+  - 20%
+  tasks:
+  - name: Upgrading talos | Check if ceph is installed
+    run_once: true
+    changed_when: false
+    register: ceph_pods
+    delegate_to: localhost
+    ansible.builtin.command: kubectl get pods -n rook-ceph
+
+  - name: Upgrading talos | Setting facts
+    set_fact:
+      talosctl_opts: --talosconfig={{ inventory_dir }}/talosconfig  -e {{ inventory_hostname }} -n {{ inventory_hostname }}
+      use_ceph: '{% if ceph_pods.stdout_lines | length > 1 %}true{% else %}false{% endif %}'
+
+  - name: Upgrade talos | Starting the upgrade
+    delegate_to: localhost
+    ansible.builtin.command: talosctl {{ talosctl_opts }} upgrade --preserve
+
+  - name: Upgrade talos | Wait for cilium to be healthy
+    delegate_to: localhost
+    changed_when: false
+    ansible.builtin.command: cilium status --wait
+
+  - name: Upgrade talos | Wait for the ceph cluster to be started
+    when: use_ceph | lower == "true"
+    until: (bootstrap.stdout | from_yaml).status.health == "HEALTH_OK"
+    delay: '{{ waiting_time_minutes * 60 }}'
+    register: bootstrap
+    delegate_to: localhost
+    ansible.builtin.command: kubectl -n rook-ceph get CephCluster rook-ceph -o yaml
+    changed_when: false
