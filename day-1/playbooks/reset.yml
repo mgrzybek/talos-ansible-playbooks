@@ -13,6 +13,7 @@
     register: result
     run_once: true
     delegate_to: localhost
+    changed_when: false
     ansible.builtin.shell: kubectl config get-contexts | awk '/{{ cluster_name }}/ {print $2}'
 
   - name: Reset | Set facts
