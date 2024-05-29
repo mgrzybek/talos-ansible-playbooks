@@ -42,7 +42,7 @@ Get the last version from GitHub and upgrade.
 
 ```console
 $ export KUBERNETES_TAGS=https://api.github.com/repos/kubernetes/kubernetes/tags
-$ export KUBERNETES_VERSION=$(curl -s $KUBERNETES_TAGS | jq -r ".[].name" | awk "!/alpha/ && !/beta/ && !/rc/" | head -n1)
+$ export KUBERNETES_VERSION=$(curl -s $KUBERNETES_TAGS | jq -r ".[].name" | awk '!/alpha/ && !/beta/ && !/rc/' | head -n1)
 $ make upgrade-k8s
 ```
 

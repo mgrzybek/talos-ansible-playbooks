@@ -1,7 +1,7 @@
 - hosts: controlplane
   gather_facts: no
   become: false
-  serial: 1
+  run_once: true
   tasks:
   - name: check kubernetes version
     assert:
@@ -11,10 +11,16 @@
       - kubernetes_version | length > 3
 
   - name: Upgrading k8s | Setting facts
+    delegate_to: localhost
+    register: kubelet_versions
+    ansible.builtin.shell: kubectl get nodes -o json | jq -r '.items[].status.nodeInfo.kubeletVersion' | sort -u
+
+  - name: Upgrading k8s | Setting facts
     set_fact:
-      talosctl_opts: --insecure --talosconfig {{ inventory_dir }}/talosconfig  -n {{ inventory_hostname }}
+      talosctl_opts: --talosconfig={{ inventory_dir }}/talosconfig -e {{ inventory_hostname }} -n {{ inventory_hostname }}
+      need_upgrade: '{% if kubelet_versions.stdout_lines | length > 1 or kubernetes_version not in kubelet_versions.stdout_lines %}true{% else %}false{% endif %}'
 
   - name: Upgrade k8s | Starting the upgrade
     delegate_to: localhost
-    run_once: true
+    when: need_upgrade | lower == "true"
     ansible.builtin.command: talosctl {{ talosctl_opts }} upgrade-k8s --to {{ kubernetes_version }}

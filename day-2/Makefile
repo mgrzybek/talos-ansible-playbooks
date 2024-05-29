@@ -46,6 +46,11 @@ cluster-shutdown: ## Stop the nodes but keep the current configuration
 cluster-reset: ## Reset the cluster (nodes are wiped, kubectl context removed)
 	@$(MAKE) -C ../day-1 cluster-reset
 
+.PHONY: upgrade-talos
+upgrade-talos: ## Upgrade k8s to the given version (KUBERNETES_VERSION)
+	$(WHICH) ansible-playbook
+	$(ANSIBLE_PLAYBOOK) playbooks/upgrade-talos.yml
+
 .PHONY: upgrade-k8s
 upgrade-k8s: ## Upgrade k8s to the given version (KUBERNETES_VERSION)
 	$(WHICH) ansible-playbook
