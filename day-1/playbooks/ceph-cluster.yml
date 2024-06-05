@@ -18,6 +18,7 @@
   - name: Ceph Cluster | Wait for the cluster to be started
     until: (bootstrap.stdout | from_yaml).status.phase == "Ready"
     delay: '{{ waiting_time_minutes * 60 }}'
+    retries: 100
     register: bootstrap
     delegate_to: localhost
     ansible.builtin.command: kubectl -n rook-ceph get CephCluster rook-ceph -o yaml
@@ -91,3 +92,10 @@
     register: result
     ansible.builtin.command: kubectl delete -f {{ inventory_dir }}/day-1/manifests/ceph.test-sc-block-rwo.yaml --wait=true
     changed_when: result.stdout | regex_search("deleted")
+
+  - name: Ceph Cluster | Set the default storage class
+    delegate_to: localhost
+    register: result
+    ansible.builtin.command: |
+      kubectl patch storageclass rook-ceph-block -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+    changed_when: result.stdout | regex_search("no change") == -1
