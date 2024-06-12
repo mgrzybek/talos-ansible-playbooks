@@ -21,9 +21,12 @@
       talosctl_opts: --nodes {{ inventory_hostname }} --endpoints {{ inventory_hostname }} --talosconfig={{ inventory_dir }}/talosconfig
       contexts: '{{ result.stdout_lines }}'
 
+  - name: Reset | List the disks
+    include_tasks: '{{ inventory_dir }}/tasks/get-disks.yml'
+
   - name: Reset | Reset the node and reboot to a non-configured state
     delegate_to: localhost
-    ansible.builtin.command: talosctl {{ talosctl_opts }} reset --graceful=false --reboot=true --wipe-mode=all --wait
+    ansible.builtin.command: talosctl {{ talosctl_opts }} reset --graceful=false --reboot=true --wipe-mode=all --wait {% if disks is defined and disks | length > 0 %}--user-disks-to-wipe={{ disks | join(",") }}{% endif %}
 
   - name: Reset | Remove the kubectl context
     run_once: true

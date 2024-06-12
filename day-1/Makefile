@@ -48,16 +48,25 @@ apply-conf:
 .PHONY: health
 health:
 	$(WHICH) ansible-playbook
+	test -f ../talosconfig
 	$(ANSIBLE_PLAYBOOK) playbooks/health.yml
+
+.PHONY: cluster-reboot
+cluster-reboot: ## Reboot the cluster (one by one)
+	$(WHICH) ansible-playbook
+	$(ANSIBLE_PLAYBOOK) playbooks/reboot.yml
 
 .PHONY: cluster-reset
 cluster-reset: ## Reset the cluster (nodes are wiped, kubectl context removed)
 	$(WHICH) ansible-playbook
+	test -f ../talosconfig
 	$(ANSIBLE_PLAYBOOK) playbooks/reset.yml
 	rm -f ../talosconfig ../worker.yaml ../controlplane.yaml ../*.host.yaml
 
 .PHONY: cluster-shutdown
 cluster-shutdown: ## Stop the nodes but keep the current configuration
+	$(WHICH) ansible-playbook
+	test -f ../talosconfig
 	$(ANSIBLE_PLAYBOOK) playbooks/shutdown.yml
 
 .PHONY: cluster-create
@@ -97,6 +106,14 @@ rook-ceph-cluster: rook-ceph-operator cilium-l2 ## Deploy a ceph cluster
 	$(WHICH) ansible-playbook
 	$(ANSIBLE_PLAYBOOK) playbooks/ceph-cluster.yml
 	kubectl rook-ceph health
+	kubectl rook-ceph ceph status
+
+##############################################################################
+# Cert Manager
+
+.PHONY: cert-manager
+cert-manager: ## Install cert manager
+	kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.5/cert-manager.yaml
 
 ##############################################################################
 # Metal-as-a-Service targets

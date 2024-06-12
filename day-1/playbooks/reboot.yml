@@ -1,0 +1,12 @@
+- hosts: all
+  gather_facts: no
+  become: false
+  serial: 1
+  tasks:
+  - name: Reboot | Set facts
+    set_fact:
+      talosctl_opts: --talosconfig={{ inventory_dir }}/talosconfig  -n {{ inventory_hostname }} -e {{ inventory_hostname }}
+
+  - name: Reboot | Reboot the cluster
+    delegate_to: localhost
+    ansible.builtin.command: talosctl {{ talosctl_opts }} reboot

@@ -1,0 +1,12 @@
+- name: Get disks | List the disks
+  delegate_to: localhost
+  register: disks_result
+  changed_when: false
+  ansible.builtin.shell: |
+    talosctl {{ talosctl_opts }} disks \
+    | awk '/dev/ && ! /\*/ {if ($1 ~ "dev") print $1,$13 ; else print $2,$14}' \
+    | awk '{print $1}'
+
+- name: Get disks | Set facts
+  set_fact:
+    disks: '{{ disks_result.stdout_lines }}'

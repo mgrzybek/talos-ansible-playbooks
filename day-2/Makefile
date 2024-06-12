@@ -46,6 +46,10 @@ cluster-shutdown: ## Stop the nodes but keep the current configuration
 cluster-reset: ## Reset the cluster (nodes are wiped, kubectl context removed)
 	@$(MAKE) -C ../day-1 cluster-reset
 
+.PHONY: cluster-reboot
+cluster-reboot: ## Reboot the cluster (one by one)
+	@$(MAKE) -C ../day-1 cluster-reboot
+
 .PHONY: upgrade-talos
 upgrade-talos: ## Upgrade k8s to the given version (KUBERNETES_VERSION)
 	$(WHICH) ansible-playbook
@@ -72,7 +76,7 @@ remove-nodes: ## Remove nodes deleted from the inventory
 
 .PHONY: remove-rook-operator
 remove-rook-ceph: ## Remove Rook operator for Ceph
-	kubectl --namespace rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"cleanupPolicy":{"confirmation":"yes-really-remove-data"}}}'
+	kubectl --namespace rook-ceph patch cephcluster rook-ceph --type merge -p '{"spec":{"cleanupPolicy":{"confirmation":"yes-really-destroy-data"}}}'
 
 	$(KUBECTL_DELETE) storageclasses ceph-block ceph-bucket ceph-filesystem
 
@@ -85,6 +89,8 @@ remove-rook-ceph: ## Remove Rook operator for Ceph
 	$(KUBECTL_DELETE) --namespace rook-ceph -f ../day-1/manifests/rook.operator.yaml
 	$(KUBECTL_DELETE) --namespace rook-ceph -f ../day-1/manifests/rook.common.yaml
 	$(KUBECTL_DELETE) --namespace rook-ceph -f ../day-1/manifests/rook.crds.yaml
+
+	$(KUBECTL_DELETE) namespace rook-ceph
 
 .PHONY: remove-tinkerbell
 remove-tinkerbell: ## Remove Tinkerbell
