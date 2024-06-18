@@ -116,6 +116,18 @@ cert-manager: ## Install cert manager
 	kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.5/cert-manager.yaml
 
 ##############################################################################
+# Observability
+
+## Quickwit
+
+quickwit:
+	$(WHICH) ansible-playbook
+	$(ANSIBLE_PLAYBOOK) playbooks/quickwit.yml
+	kubectl -n quickwit wait deployment/quickwit-obs-control-plane --for=condition=Available --timeout=1h > /dev/null
+	kubectl -n quickwit wait deployment/quickwit-obs-janitor --for=condition=Available --timeout=1h > /dev/null
+	kubectl -n quickwit wait deployment/quickwit-obs-metastore --for=condition=Available --timeout=1h > /dev/null
+
+##############################################################################
 # Metal-as-a-Service targets
 
 ## Tinkerbell

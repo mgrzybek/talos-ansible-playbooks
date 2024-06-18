@@ -103,6 +103,10 @@ remove-tinkerbell: ## Remove Tinkerbell
 		templates.tinkerbell.org \
 		workflows.tinkerbell.org
 
+remove-quickwit:
+	$(KUBECTL_DELETE) --namespace=quickwit -f ../day-1/manifests/quickwit.yaml
+	$(KUBECTL_DELETE) ns quickwit
+
 ##############################################################################
 # Help
 

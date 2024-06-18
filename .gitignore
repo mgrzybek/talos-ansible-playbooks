@@ -19,6 +19,7 @@ group_vars/*.yml
 *.clusterctl.yaml
 opensearch-operator.yaml
 tinkerbell.yaml
+quickwit.yaml
 
 # MacOS
 .DS_Store

@@ -1,0 +1,144 @@
+- hosts: controlplane
+  gather_facts: no
+  become: false
+  run_once: true
+  tasks:
+  - name: Quickwit | Set facts
+    set_fact:
+      s3_user: quickwit
+
+  - name: Quickwit | Create namespace
+    delegate_to: localhost
+    kubernetes.core.k8s:
+      wait: yes
+      definition:
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: quickwit
+        labels:
+          name: quickwit
+
+  # https://github.com/rook/rook/blob/release-1.14/deploy/examples/object-user.yaml
+  - name: Quickwit | Create the S3 credentials
+    delegate_to: localhost
+    kubernetes.core.k8s:
+      wait: yes
+      definition:
+        apiVersion: ceph.rook.io/v1
+        kind: CephObjectStoreUser
+        metadata:
+          name: '{{ s3_user }}'
+          namespace: rook-ceph
+        spec:
+          store: objects-store
+          displayName: Quickwit user
+          capabilities:
+            user: '*'
+            bucket: '*'
+            metadata: '*'
+            usage: '*'
+            zone: '*'
+
+  - name: Quickwit | Get the S3 credentials
+    delegate_to: localhost
+    register: result
+    changed_when: false
+    ansible.builtin.command: kubectl -n rook-ceph get secrets rook-ceph-object-user-objects-store-quickwit -o yaml
+
+  - name: Quickwit | Set facts
+    set_fact:
+      s3_endpoint: '{{ (result.stdout | from_yaml).data.Endpoint | b64decode }}'
+      s3_access_key: '{{ (result.stdout | from_yaml).data.AccessKey | b64decode }}'
+      s3_secret_access_key: '{{ (result.stdout | from_yaml).data.SecretKey | b64decode }}'
+
+  - name: Quickwit | Create the bucket
+    delegate_to: localhost
+    kubernetes.core.k8s:
+      wait: yes
+      definition:
+        apiVersion: objectbucket.io/v1alpha1
+        kind: ObjectBucketClaim
+        metadata:
+          name: quickwit
+          namespace: quickwit
+        spec:
+          # To create a new bucket specify either `bucketName` or
+          # `generateBucketName` here. Both cannot be used. To access
+          # an existing bucket the bucket name needs to be defined in
+          # the StorageClass referenced here, and both `bucketName` and
+          # `generateBucketName` must be omitted in the OBC.
+          #bucketName:
+          generateBucketName: quickwit
+          storageClassName: rook-ceph-delete-bucket
+          additionalConfig:
+            # To set for quota for OBC
+            #maxObjects: "1000"
+            #maxSize: "2G"
+
+  - name: Quickwit | Add Quickwit Helm repo
+    delegate_to: localhost
+    ansible.builtin.command: helm repo add quickwit https://helm.quickwit.io
+
+  - name: Quickwit | Create helm template
+    delegate_to: localhost
+    register: result
+    ansible.builtin.command: |
+      helm template quickwit-obs quickwit/quickwit \
+        --namespace=quickwit \
+        --set default_index_root_uri=s3://quickwit/quickwit-indexes
+        --set config.storage.s3.endpoint={{ s3_endpoint }} \
+        --set config.storage.s3.access_key_id={{ s3_access_key }} \
+        --set config.storage.s3.secret_access_key={{ s3_secret_access_key }}
+
+  - name: Quickwit | Create the manifest
+    delegate_to: localhost
+    ansible.builtin.copy:
+      content: '{{ result.stdout }}'
+      dest: '{{ inventory_dir }}/day-1/manifests/quickwit.yaml'
+
+  - name: Quickwit | Install
+    delegate_to: localhost
+    register: install
+    changed_when: install.stdout | regex_search("configured") or install.stdout | regex_search("created")
+    ansible.builtin.command: |
+      kubectl apply --namespace=quickwit \
+        -f {{ inventory_dir }}/day-1/manifests/quickwit.yaml \
+        --wait=false
+
+  - name: Quickwit | Create Searcher Load Balancer
+    when:
+    - quickwit.searcher_ip is defined
+    - quickwit.searcher_ip | length > 8
+    delegate_to: localhost
+    kubernetes.core.k8s:
+      wait: true
+      state: present
+      definition:
+        apiVersion: v1
+        kind: Service
+        metadata:
+          annotations:
+            io.cilium/lb-ipam-ips: '{{ quickwit.searcher_ip }}'
+          labels:
+            app.kubernetes.io/instance: quickwit-obs
+            app.kubernetes.io/name: quickwit
+            serviceType: core
+          name: quickwit-obs-searcher-lb
+          namespace: quickwit
+        spec:
+          internalTrafficPolicy: Cluster
+          ipFamilies:
+          - IPv4
+          ipFamilyPolicy: SingleStack
+          loadBalancerClass: io.cilium/l2-announcer
+          ports:
+          - name: http
+            port: 7280
+            protocol: TCP
+            targetPort: 7280
+          selector:
+            app.kubernetes.io/component: searcher
+            app.kubernetes.io/instance: quickwit-obs
+            app.kubernetes.io/name: quickwit
+          type: LoadBalancer
