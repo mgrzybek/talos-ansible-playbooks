@@ -92,6 +92,10 @@ remove-rook-ceph: ## Remove Rook operator for Ceph
 
 	$(KUBECTL_DELETE) namespace rook-ceph
 
+.PHONY: remove-cert-manager
+remove-cert-manager: ## Remove Cert Manager
+	$(KUBECTL_DELETE) -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.5/cert-manager.yaml
+
 .PHONY: remove-tinkerbell
 remove-tinkerbell: ## Remove Tinkerbell
 	$(KUBECTL_DELETE) ns tink-system
@@ -103,7 +107,8 @@ remove-tinkerbell: ## Remove Tinkerbell
 		templates.tinkerbell.org \
 		workflows.tinkerbell.org
 
-remove-quickwit:
+.PHONY: remove-quickwit
+remove-quickwit: ## Remove Quickwit
 	$(KUBECTL_DELETE) --namespace=quickwit -f ../day-1/manifests/quickwit.yaml
 	$(KUBECTL_DELETE) ns quickwit
 

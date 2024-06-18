@@ -120,7 +120,8 @@ cert-manager: ## Install cert manager
 
 ## Quickwit
 
-quickwit:
+.PHONY: quickwit
+quickwit: ## Install Quickwit log and tracing management tool
 	$(WHICH) ansible-playbook
 	$(ANSIBLE_PLAYBOOK) playbooks/quickwit.yml
 	kubectl -n quickwit wait deployment/quickwit-obs-control-plane --for=condition=Available --timeout=1h > /dev/null

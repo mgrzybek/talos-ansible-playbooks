@@ -11,11 +11,14 @@ VERBOSE                             Set ansible in verbose mode (bool)
 
 Targets
 =======
+cert-manager                        Install cert manager
 cilium-l2                           Deploy Cilium L2 CiliumLoadBalancerIPPool and CiliumL2AnnouncementPolicy
 cluster-create                      Create a cluster
+cluster-reboot                      Reboot the cluster (one by one)
 cluster-reset                       Reset the cluster (nodes are wiped, kubectl context removed)
 cluster-shutdown                    Stop the nodes but keep the current configuration
 help                                This help message
+quickwit                            Install Quickwit log and tracing management tool
 rook-ceph-cluster                   Deploy a ceph cluster
 rook-ceph-operator                  Install Rook operator for Ceph
 tinkerbell                          Install tinkerbell metal-as-a-service
