@@ -30,6 +30,12 @@
     ansible.builtin.command: kubectl apply -f {{ inventory_dir }}/day-1/manifests/ceph.storage-class-block-rwo.yaml --wait=true
     changed_when: pool.stdout | regex_search("configured")
 
+  - name: Ceph Cluster | Create the objects store using erasure coding
+    delegate_to: localhost
+    register: objects
+    ansible.builtin.command: kubectl apply -f {{ inventory_dir }}/day-1/manifests/ceph.objects-erasure-coding.yaml --wait=true
+    changed_when: objects.stdout | regex_search("configured")
+
   - name: Ceph Cluster | Create the Cilium L2 Load Balancer for the manager
     delegate_to: localhost
     when:
