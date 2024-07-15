@@ -1,0 +1,117 @@
+---
+- hosts: all
+  gather_facts: no
+  become: true
+  tasks:
+  - name: Check variables
+    assert:
+      fail_msg: Missing required network settings
+      that:
+      - talos_bridge_management is defined
+      - talos_bridge_management.name is defined
+      - talos_bridge_public is defined
+      - talos_bridge_public.name is defined
+
+  - name: Create the networks
+    include_tasks: "{{ inventory_dir}}/tasks/create-libvirt-network.yml"
+    with_items:
+    - "{{ talos_bridge_management }}"
+    - "{{ talos_bridge_public }}"
+
+- hosts: controlplane
+  gather_facts: false
+  become: true
+  serial: 1
+  tasks:
+  - name: Check variables
+    assert:
+      fail_msg: Missing required network settings
+      that:
+      - talos_bridge_management is defined
+      - talos_bridge_management.name is defined
+      - talos_bridge_public is defined
+      - talos_bridge_public.name is defined
+      - os_disk_size_mb is defined
+
+  - name: Check if domain exists
+    delegate_to: localhost
+    ansible.builtin.command: virsh dominfo {{ inventory_hostname }}
+    failed_when: false
+    changed_when: false
+    register: result
+
+  - name: Create the domain
+    delegate_to: localhost
+    when: result.stderr | length > 0
+    ansible.builtin.command: |
+        virt-install \
+            --osinfo detect=on,require=off --console pty,target_type=virtio \
+            --name {{ inventory_hostname }} --vcpus 1 --memory 2048 \
+            --disk size={{ os_disk_size_mb }} \
+            --network {{ talos_bridge_management.name }},type=network,source={{ talos_bridge_management.name }} \
+            --network {{ talos_bridge_public.name }},type=network,source={{ talos_bridge_public.name }} \
+            --cdrom {{ iso }} \
+            --noautoconsole
+
+  - name: Get the mgmt ip address
+    delegate_to: localhost
+    ansible.builtin.shell: virsh domifaddr {{ inventory_hostname }} | awk '/ipv4/ {print $NF}' | tail -n1 | awk -F/ '{print $1}'
+    register: result
+    changed_when: false
+
+  - name: Add the host in the inventory
+    delegate_to: localhost
+    ansible.builtin.copy:
+        dest: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}.yml"
+        content: "ansible_host: {{ result.stdout }}"
+
+- hosts: worker
+  gather_facts: false
+  become: true
+  serial: 1
+  tasks:
+  - name: Check variables
+    assert:
+      fail_msg: Missing required network settings
+      that:
+      - talos_bridge_management is defined
+      - talos_bridge_management.name is defined
+      - talos_bridge_public is defined
+      - talos_bridge_public.name is defined
+      - os_disk_size_mb is defined
+      - data_disk_size_mb is defined
+
+  - name: Check if domain exists
+    delegate_to: localhost
+    ansible.builtin.command: virsh dominfo {{ inventory_hostname }}
+    failed_when: false
+    changed_when: false
+    register: result
+
+  - name: Create the domain
+    delegate_to: localhost
+    when: result.stderr | length > 0
+    ansible.builtin.command: |
+        virt-install \
+            --osinfo detect=on,require=off --console pty,target_type=virtio \
+            --name {{ inventory_hostname }} --vcpus 1 --memory 2048 \
+            --disk size={{ os_disk_size_mb }} \
+            --disk size={{ data_disk_size_mb }} \
+            --network {{ talos_bridge_management.name }},type=network,source={{ talos_bridge_management.name }} \
+            --network {{ talos_bridge_public.name }},type=network,source={{ talos_bridge_public.name }} \
+            --cdrom {{ iso }} \
+            --noautoconsole
+
+  - name: Get the mgmt ip address
+    delegate_to: localhost
+    ansible.builtin.shell: virsh domifaddr {{ inventory_hostname }} | awk '/ipv4/ {print $NF}' | tail -n1 | awk -F/ '{print $1}'
+    register: result
+    changed_when: false
+
+  - name: Add the host in the inventory
+    delegate_to: localhost
+    ansible.builtin.copy:
+        dest: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}.yml"
+        content: "ansible_host: {{ result.stdout }}"
+
+  - debug: var=ansible_host

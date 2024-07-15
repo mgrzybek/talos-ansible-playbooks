@@ -14,6 +14,7 @@ day-1/extensions/*.yaml
 # Ansible artifacts
 *.ini
 group_vars/*.yml
+host_vars/*.yml
 
 # Manifests generated using helm or downloaded from internet
 *.clusterctl.yaml
@@ -23,6 +24,10 @@ quickwit.yaml
 
 # MacOS
 .DS_Store
+
+# IDE
+.kdev4/
+*.kdev4
 
 # Testing and WIP stuff
 tmp

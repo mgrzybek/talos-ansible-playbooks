@@ -1,0 +1,34 @@
+---
+
+#- name: LXD| Check variables
+#  assert:
+#    fail_msg:
+#    that:
+#    - libvirt is defined
+#    - libvirt.uri is defined
+#    - libvirt.uri | length > 0
+
+
+
+- name: LXD |  Define profiles:
+  set_fact:
+    # Workers
+    w_profile:
+      config: {}
+      description: Default LXD profile
+      devices:
+        eth0:
+        name: eth0
+        network: lxdbr0
+        type: nic
+      root:
+        path: /
+        pool: default
+        type: disk
+      name: default
+    # Controlplane
+    cp_profile:
+    # Management network
+    mgmt_network:
+    # Public network
+    public_network:

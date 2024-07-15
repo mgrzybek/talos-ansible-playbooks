@@ -30,6 +30,7 @@ The ansible group files are there:
 │   ├── all.yml          # All machines
 │   ├── controlplane.yml # Controlplane
 │   └── worker.yml       # Worker
+├── host_vars
 └─── inventory.ini
 ```
 
@@ -95,6 +96,18 @@ Then run the targets:
 ```console
 $  make metal-amd64.iso # Create the amd64 ISO image
 $  make metal-arm64.iso # Create the arm64 ISO image
+```
+
+## Create the inventory
+
+The inventory file must contain two groups: `controlplane` and `worker`. An example file is [available here](../inventory.ini.example).
+Moreover like any ansible inventory, dedicated variables should be written in `host_vars`.
+
+```ini
+[controlplane]
+
+[worker]
+
 ```
 
 ## Configure the required variables
@@ -180,4 +193,10 @@ The tink stack LoadBalancer must use a Cilium-based IP address thanks to the pre
 tinkerbell:
   lb_ip: "192.168.70.132"      # This address is part of cilium.l2.blocks
   stack_chart_version: "0.4.3" # Choose the release you want
+```
+
+## Provisioning using a local libvirt daemon
+
+```console
+$ make libvirt
 ```

@@ -6,6 +6,13 @@ ifndef TALOS_VERSION ## Talos version to use (using talosctl version by default)
 	TALOS_VERSION=$(shell talosctl version 2>/dev/null | awk '/Tag/ {print $$NF}' | head -n1)
 endif
 
+ifdef VERBOSE ## Set ansible in verbose mode (bool)
+	VERBOSE_OPTS=-vvv
+endif
+
+ANSIBLE_OPTS=-i ../inventory.ini $(VERBOSE_OPTS)
+ANSIBLE_PLAYBOOK=ansible-playbook $(ANSIBLE_OPTS)
+
 DRAWIO_BIN=draw.io
 DRAWIO=$(DRAWIO_BIN) --export --embed-svg-images
 
@@ -18,7 +25,7 @@ schematic.json: ## Get schematic json data from the talos factory
 	$(WHICH) curl
 	$(WHICH) tee
 	$(WHICH) talosctl
-	curl -X POST --data-binary @bare-metal.yaml $(TALOS_FACTORY_URL)/schematics | tee schematic.json
+	curl -X POST --data-binary @bare-metal.yaml $(TALOS_FACTORY_URL)/schematics -o schematic.json
 
 metal-amd64.iso: schematic.json ## Download amd64 iso from the talos factory
 	$(WHICH) jq
@@ -47,6 +54,10 @@ clean: ## Remove the downloaded artifacts
 .PHONY: requirements
 requirements:
 	ansible-galaxy install -r requirements.yml
+
+.PHONY: libvirt
+libvirt:
+	sudo $(ANSIBLE_PLAYBOOK) playbooks/libvirt.yml
 
 ##############################################################################
 # Help
