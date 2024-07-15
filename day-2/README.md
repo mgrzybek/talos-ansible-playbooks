@@ -16,6 +16,7 @@ cluster-reboot                 Reboot the cluster (one by one)
 cluster-reset                  Reset the cluster (nodes are wiped, kubectl context removed)
 cluster-shutdown               Stop the nodes but keep the current configuration
 help                           This help message
+libvirt-destroy                Destroy the local machines
 remove-cert-manager            Remove Cert Manager
 remove-nodes                   Remove nodes deleted from the inventory
 remove-quickwit                Remove Quickwit
@@ -59,4 +60,10 @@ Remove the middleware you want using their target:
 ```console
 $ make remove-rook-ceph
 $ make remove-tinkerbell
+```
+
+Destroy the libvirt-based cluster
+
+```console
+$ make libvirt-destroy
 ```

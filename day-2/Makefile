@@ -71,6 +71,10 @@ remove-nodes: ## Remove nodes deleted from the inventory
 	$(WHICH) ansible-playbook
 	$(ANSIBLE_PLAYBOOK) playbooks/remove-nodes.yml
 
+.PHONY: libvirt-destroy
+libvirt-destroy: ## Destroy the local machines
+	sudo $(ANSIBLE_PLAYBOOK) playbooks/libvirt.yml
+
 ##############################################################################
 # Removing services
 

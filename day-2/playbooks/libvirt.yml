@@ -1,0 +1,53 @@
+- hosts: all
+  gather_facts: false
+  become: true
+  serial: 1
+  tasks:
+  - name: Check if domain exists
+    delegate_to: localhost
+    ansible.builtin.command: virsh dominfo {{ inventory_hostname }}
+    failed_when: false
+    changed_when: false
+    register: result
+
+  - name: Destroy
+    delegate_to: localhost
+    when: result.stderr | length == 0
+    ansible.builtin.command: virsh destroy {{ inventory_hostname }}
+
+  - name: Undefine
+    delegate_to: localhost
+    when: result.stderr | length == 0
+    ansible.builtin.command: virsh undefine {{ inventory_hostname }}
+
+  - name: Remove the ansible_ssh attribute from host_vars
+    ansible.builtin.lineinfile:
+      path: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}.yml"
+      state: absent
+      regexp: '^ansible_host:'
+
+- hosts: controlplane
+  gather_facts: false
+  become: true
+  serial: 1
+  tasks:
+  - name: Destroy the network
+    delegate_to: localhost
+    run_once: true
+    connection: local
+    register: result
+    changed_when: result.stdout == "unchanged"
+    ansible.builtin.shell: virsh net-info {{ item.name }} && virsh net-destroy {{ item.name }} || echo unchanged
+    with_items:
+    - "{{ talos_bridge_management }}"
+    - "{{ talos_bridge_public }}"
+
+  - name: Undefine the network
+    delegate_to: localhost
+    run_once: true
+    register: result
+    changed_when: result.stdout == "unchanged"
+    ansible.builtin.shell: virsh net-undefine {{ item.name }} && virsh net-destroy {{ item.name }} || echo unchanged
+    with_items:
+    - "{{ talos_bridge_management }}"
+    - "{{ talos_bridge_public }}"
