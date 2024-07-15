@@ -3,7 +3,7 @@
   gather_facts: no
   become: true
   tasks:
-  - name: Check variables
+  - name: Libvirt | Check variables
     assert:
       fail_msg: Missing required network settings
       that:
@@ -12,7 +12,7 @@
       - talos_bridge_public is defined
       - talos_bridge_public.name is defined
 
-  - name: Create the networks
+  - name: Libvirt | Create the networks
     include_tasks: "{{ inventory_dir}}/tasks/create-libvirt-network.yml"
     with_items:
     - "{{ talos_bridge_management }}"
@@ -23,7 +23,7 @@
   become: true
   serial: 1
   tasks:
-  - name: Check variables
+  - name: Libvirt | Check variables
     assert:
       fail_msg: Missing required network settings
       that:
@@ -33,14 +33,14 @@
       - talos_bridge_public.name is defined
       - os_disk_size_mb is defined
 
-  - name: Check if domain exists
+  - name: Libvirt | Check if domain exists
     delegate_to: localhost
     ansible.builtin.command: virsh dominfo {{ inventory_hostname }}
     failed_when: false
     changed_when: false
     register: result
 
-  - name: Create the domain
+  - name: Libvirt | Create the domain
     delegate_to: localhost
     when: result.stderr | length > 0
     ansible.builtin.command: |
@@ -53,13 +53,13 @@
             --cdrom {{ iso }} \
             --noautoconsole
 
-  - name: Get the mgmt ip address
+  - name: Libvirt | Get the mgmt ip address
     delegate_to: localhost
     ansible.builtin.shell: virsh domifaddr {{ inventory_hostname }} | awk '/ipv4/ {print $NF}' | tail -n1 | awk -F/ '{print $1}'
     register: result
     changed_when: false
 
-  - name: Add the host in the inventory
+  - name: Libvirt | Add the host in the inventory
     delegate_to: localhost
     ansible.builtin.copy:
         dest: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}.yml"
@@ -70,7 +70,7 @@
   become: true
   serial: 1
   tasks:
-  - name: Check variables
+  - name: Libvirt | Check variables
     assert:
       fail_msg: Missing required network settings
       that:
@@ -81,14 +81,14 @@
       - os_disk_size_mb is defined
       - data_disk_size_mb is defined
 
-  - name: Check if domain exists
+  - name: Libvirt | Check if domain exists
     delegate_to: localhost
     ansible.builtin.command: virsh dominfo {{ inventory_hostname }}
     failed_when: false
     changed_when: false
     register: result
 
-  - name: Create the domain
+  - name: Libvirt | Create the domain
     delegate_to: localhost
     when: result.stderr | length > 0
     ansible.builtin.command: |
@@ -102,13 +102,13 @@
             --cdrom {{ iso }} \
             --noautoconsole
 
-  - name: Get the mgmt ip address
+  - name: Libvirt | Get the mgmt ip address
     delegate_to: localhost
     ansible.builtin.shell: virsh domifaddr {{ inventory_hostname }} | awk '/ipv4/ {print $NF}' | tail -n1 | awk -F/ '{print $1}'
     register: result
     changed_when: false
 
-  - name: Add the host in the inventory
+  - name: Libvirt | Add the host in the inventory
     delegate_to: localhost
     ansible.builtin.lineinfile:
       path: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}.yml"
