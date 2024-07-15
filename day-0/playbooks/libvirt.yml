@@ -58,6 +58,8 @@
     ansible.builtin.shell: virsh domifaddr {{ inventory_hostname }} | awk '/ipv4/ {print $NF}' | tail -n1 | awk -F/ '{print $1}'
     register: result
     changed_when: false
+    until: result.stdout | length > 0
+    retries: 10
 
   - name: Libvirt | Add the host in the inventory
     delegate_to: localhost
@@ -107,6 +109,8 @@
     ansible.builtin.shell: virsh domifaddr {{ inventory_hostname }} | awk '/ipv4/ {print $NF}' | tail -n1 | awk -F/ '{print $1}'
     register: result
     changed_when: false
+    until: result.stdout | length > 0
+    retries: 10
 
   - name: Libvirt | Add the host in the inventory
     delegate_to: localhost
@@ -114,4 +118,4 @@
       path: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}.yml"
       state: present
       line: "ansible_host: {{ result.stdout }}"
-      regexp: '^ansible_host:'
+      regexp: 'ansible_host:'
