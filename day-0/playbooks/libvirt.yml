@@ -110,8 +110,8 @@
 
   - name: Add the host in the inventory
     delegate_to: localhost
-    ansible.builtin.copy:
-        dest: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}.yml"
-        content: "ansible_host: {{ result.stdout }}"
-
-  - debug: var=ansible_host
+    ansible.builtin.lineinfile:
+      path: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}.yml"
+      state: present
+      line: "ansible_host: {{ result.stdout }}"
+      regexp: '^ansible_host:'
