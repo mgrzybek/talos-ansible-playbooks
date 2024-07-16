@@ -195,7 +195,49 @@ tinkerbell:
   stack_chart_version: "0.4.3" # Choose the release you want
 ```
 
+## Preparing an airgap docker registry
+
+The required variable is to be set in the group varibles file, like this:
+
+```yaml
+# group_vars/all.yml
+---
+
+docker_registry_endpoint: 127.0.0.1:5000
+```
+
+The target to run:
+
+```console
+$ make airgap
+```
+
 ## Provisioning using a local libvirt daemon
+
+The target provides a simple way to create two bridges and the virtial instances. Some variables are required:
+
+```yaml
+# group_vars/all.yml
+---
+iso: /var/lib/libvirt/images/metal-amd64.iso # Path of the ISO image
+os_disk_size_mb: 30 # Size of the operating system disk
+
+docker_registry_endpoint: 127.0.0.1:5000 # Endpoint of the docker registry
+
+talos_bridge_management:    # The management bridge uses DHCP to provision the nodes
+  name: br-talos-mgmt       # Name
+  ip: 192.168.64.1          # IP of the bridge
+  netmask: 255.255.255.0    # Netmask of the bridge
+  dhcp:                     # Activating the DHCP service
+    range:
+      start: 192.168.64.100 # First IP of the DHCP range
+      end: 192.168.64.200   # Last IP of the DHCP range
+
+talos_bridge_public:        # The public bridge does not provide DHCP service
+  name: br-talos-public     # Name
+```
+
+Then, the target can be call:
 
 ```console
 $ make libvirt
