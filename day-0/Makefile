@@ -13,6 +13,9 @@ endif
 ANSIBLE_OPTS=-i ../inventory.ini $(VERBOSE_OPTS)
 ANSIBLE_PLAYBOOK=ansible-playbook $(ANSIBLE_OPTS)
 
+CILIUM_VERSION=$(shell yq ".cilium.version"  ../group_vars/controlplane.yml)
+DOCKER_REGISTRY_ENDPOINT=$(shell yq ".docker_registry_endpoint" ../group_vars/all.yml)
+
 DRAWIO_BIN=draw.io
 DRAWIO=$(DRAWIO_BIN) --export --embed-svg-images
 
@@ -58,6 +61,37 @@ requirements:
 .PHONY: libvirt
 libvirt:
 	sudo $(ANSIBLE_PLAYBOOK) playbooks/libvirt.yml
+
+.PHONY: airgap-registry
+airgap-registry: ## Create a local registry using docker
+	$(WHICH) curl
+	$(WHICH) docker
+	$(WHICH) helm
+	$(WHICH) talosctl
+
+	@echo Checking cilium version…
+	! test -z $(CILIUM_VERSION)
+	echo $(CILIUM_VERSION) | fgrep -v null
+
+	@echo Checking the registry…
+	! test -z $(DOCKER_REGISTRY_ENDPOINT)
+	echo $(DOCKER_REGISTRY_ENDPOINT) | fgrep -v null
+	curl -s "$(DOCKER_REGISTRY_ENDPOINT)/v2/_catalog?pretty=true"
+
+	@echo Pulling the images…
+	for image in $(shell talosctl image default ; helm template cilium cilium/cilium --version $(CILIUM_VERSION) | awk '/ image:/ {gsub("\"","");gsub("@sha.+?","");print $$2}' | sort -u) ; do \
+		docker pull $$image ; \
+	done
+
+	@echo Retagging the images…
+	for image in $(shell talosctl image default ; helm template cilium cilium/cilium --version $(CILIUM_VERSION) | awk '/ image:/ {gsub("\"","");gsub("@sha.+?","");print $$2}' | sort -u) ; do \
+		docker tag $$image `echo $$image | sed -E 's#^[^/]+/#$(DOCKER_REGISTRY_ENDPOINT)/#'`; \
+	done
+
+	@echo Pushing the images into the local registry…
+	for image in $(shell talosctl image default ; helm template cilium cilium/cilium --version $(CILIUM_VERSION) | awk '/ image:/ {gsub("\"","");gsub("@sha.+?","");print $$2}' | sort -u) ; do \
+		docker push `echo $$image | sed -E 's#^[^/]+/#$(DOCKER_REGISTRY_ENDPOINT)/#'`; \
+	done
 
 ##############################################################################
 # Help
