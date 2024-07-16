@@ -222,8 +222,6 @@ The target provides a simple way to create two bridges and the virtial instances
 iso: /var/lib/libvirt/images/metal-amd64.iso # Path of the ISO image
 os_disk_size_mb: 30 # Size of the operating system disk
 
-docker_registry_endpoint: 127.0.0.1:5000 # Endpoint of the docker registry
-
 talos_bridge_management:    # The management bridge uses DHCP to provision the nodes
   name: br-talos-mgmt       # Name
   ip: 192.168.64.1          # IP of the bridge
