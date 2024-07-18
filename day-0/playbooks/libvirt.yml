@@ -61,11 +61,12 @@
     until: result.stdout | length > 0
     retries: 10
 
-  - name: Libvirt | Add the host in the inventory
+  - name: Libvirt | Add the host address in the host vars
     delegate_to: localhost
-    ansible.builtin.copy:
-        dest: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}.yml"
-        content: "ansible_host: {{ result.stdout }}"
+    ansible.builtin.lineinfile:
+      path: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}.yml"
+      line: "ansible_host: {{ result.stdout }}"
+      regexp: '^ansible_host:'
 
 - hosts: worker
   gather_facts: false
@@ -112,10 +113,10 @@
     until: result.stdout | length > 0
     retries: 10
 
-  - name: Libvirt | Add the host in the inventory
+  - name: Libvirt | Add the host address in the host vars
     delegate_to: localhost
     ansible.builtin.lineinfile:
       path: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}.yml"
-      state: present
       line: "ansible_host: {{ result.stdout }}"
-      regexp: 'ansible_host:'
+      regexp: '^ansible_host:'
+
