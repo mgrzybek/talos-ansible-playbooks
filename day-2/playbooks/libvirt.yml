@@ -12,7 +12,9 @@
 
   - name: Libvirt | Destroy
     delegate_to: localhost
-    when: result.stderr | length == 0
+    when:
+    - result.stderr | length == 0
+    - result.stdout | regex_search("running")
     ansible.builtin.command: virsh destroy {{ inventory_hostname }}
 
   - name: Libvirt | Undefine
@@ -26,12 +28,10 @@
       path: /var/lib/libvirt/images/{{ inventory_hostname }}.qcow2
       state: absent
 
-  - name: Libvirt | Remove the ansible_ssh attribute from host_vars
+  - name: Libvirt | Remove the ansible_host attribute from host_vars
     delegate_to: localhost
-    ansible.builtin.lineinfile:
-      path: "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}.yml"
-      state: absent
-      regexp: '^ansible_host:'
+    ansible.builtin.command: |
+      yq -i 'del(.ansible_host)' "{{ inventory_dir }}/host_vars/{{ inventory_hostname }}.yml"
 
 - hosts: controlplane
   gather_facts: false
@@ -44,7 +44,7 @@
     connection: local
     register: result
     changed_when: result.stdout == "unchanged"
-    when: item != "default"
+    when: item.name != "default"
     ansible.builtin.shell: virsh net-info {{ item.name }} && virsh net-destroy {{ item.name }} || echo unchanged
     with_items:
     - "{{ talos_bridge_management }}"
@@ -55,7 +55,7 @@
     run_once: true
     register: result
     changed_when: result.stdout == "unchanged"
-    when: item != "default"
+    when: item.name != "default"
     ansible.builtin.shell: virsh net-undefine {{ item.name }} && virsh net-destroy {{ item.name }} || echo unchanged
     with_items:
     - "{{ talos_bridge_management }}"

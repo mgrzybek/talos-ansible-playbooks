@@ -6,6 +6,8 @@
     talosctl {{ talosctl_opts }} disks \
     | awk '/dev/ && ! /\*/ {if ($1 ~ "dev") print $1,$13 ; else print $2,$14}' \
     | awk '{print $1}'
+  environment:
+    no_proxy: "{{ ansible_host | default(inventory_hostname) }}"
 
 - name: Get disks | Set facts
   set_fact:

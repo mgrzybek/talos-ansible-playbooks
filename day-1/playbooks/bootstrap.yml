@@ -5,7 +5,7 @@
   tasks:
   - name: Bootstrap | Set facts
     set_fact:
-      talosctl_opts: --nodes {{ inventory_hostname }} --endpoints {{ inventory_hostname }} --talosconfig={{ inventory_dir }}/talosconfig
+      talosctl_opts: --nodes {{ ansible_host | default(inventory_hostname) }} --endpoints {{ ansible_host | default(inventory_hostname) }} --talosconfig={{ inventory_dir }}/talosconfig
 
   - name: Bootstrap | Bootstrap talos controlplane (bootstrap of one etcd instance)
     until: bootstrap is success
@@ -14,6 +14,8 @@
     register: bootstrap
     delegate_to: localhost
     ansible.builtin.command: talosctl {{ talosctl_opts }} bootstrap
+    environment:
+      no_proxy: "{{ ansible_host | default(inventory_hostname) }}"
     failed_when:
     - bootstrap.rc == 1
     - bootstrap.stderr_lines[1] | regex_search("AlreadyExists") == ""
@@ -29,7 +31,37 @@
     delegate_to: localhost
     changed_when: false
     ansible.builtin.command: talosctl {{ talosctl_opts }} health
+    environment:
+      no_proxy: "{{ ansible_host | default(inventory_hostname) }}"
 
   - name: Bootstrap | Get kubernetes configuration
     delegate_to: localhost
     ansible.builtin.command: talosctl {{ talosctl_opts }} kubeconfig
+    environment:
+      no_proxy: "{{ ansible_host | default(inventory_hostname) }}"
+
+  - name: Bootstrap | Test if we are using a VIP for the controlplane
+    when:
+    - talos_api_endpoint is defined
+    - talos_api_endpoint.address is defined
+    - talos_api_endpoint.address | length > 0
+    - talos_api_endpoint.port is defined
+    - talos_api_endpoint.port | length > 0
+    block:
+    - name: Bootstrap | Set facts
+      set_fact:
+        vip_endpoint: "https://{{ talos_api_endpoint.address }}:{{ talos_api_endpoint.port }}"
+        node_endpoint: "https://{{ ansible_host | default(inventory_hostname)}}:6443"
+
+    - name: Bootstrap | Test if we are using a VIP for the controlplane
+      delegate_to: localhost
+      ansible.builtin.uri:
+        url: "{{ vip_endpoint }}"
+        status_code: 403
+        use_proxy: false
+
+    - name: Bootstrap | Update the kubectl context
+      delegate_to: localhost
+      ansible.builtin.command: |
+        sed -i "s#{{ node_endpoint }}#{{ vip_endpoint }}#" \
+          {{ ansible_env.HOME }}/.kube/config

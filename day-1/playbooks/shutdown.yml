@@ -4,7 +4,7 @@
   tasks:
   - name: Shutdown | Set facts
     set_fact:
-      talosctl_opts: --talosconfig={{ inventory_dir }}/talosconfig  -n {{ inventory_hostname }} -e {{ inventory_hostname }}
+      talosctl_opts: --talosconfig={{ inventory_dir }}/talosconfig  -n {{ ansible_host | default(inventory_hostname) }} -e {{ ansible_host | default(inventory_hostname) }}
 
   - name: Shutdown | Shutdown the cluster
     delegate_to: localhost

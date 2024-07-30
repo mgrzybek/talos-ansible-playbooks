@@ -42,7 +42,9 @@
 
   - name: Libvirt | Create the domain
     delegate_to: localhost
-    when: result.stderr | length > 0
+    when:
+    - result.stderr | length > 0
+    - result.stdout | regex_search("running") == None
     ansible.builtin.command: |
         virt-install \
             --osinfo detect=on,require=off --console pty,target_type=virtio \
@@ -52,6 +54,11 @@
             --network {{ talos_bridge_public.name }},type=network,source={{ talos_bridge_public.name }} \
             --cdrom {{ iso }} \
             --noautoconsole
+
+  - name: Libvirt | Create the domain
+    delegate_to: localhost
+    when: result.stdout | regex_search("running") == None
+    ansible.builtin.command: virsh start {{ inventory_hostname }}
 
   - name: Libvirt | Get the mgmt ip address
     delegate_to: localhost

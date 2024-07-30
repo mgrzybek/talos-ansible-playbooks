@@ -17,7 +17,7 @@
 
   - name: Upgrading k8s | Setting facts
     set_fact:
-      talosctl_opts: --talosconfig={{ inventory_dir }}/talosconfig -e {{ inventory_hostname }} -n {{ inventory_hostname }}
+      talosctl_opts: --talosconfig={{ inventory_dir }}/talosconfig --endpoints {{ ansible_host | default(inventory_hostname) }} -n {{ inventory_hostname }}
       need_upgrade: '{% if kubelet_versions.stdout_lines | length > 1 or kubernetes_version not in kubelet_versions.stdout_lines %}true{% else %}false{% endif %}'
 
   - name: Upgrade k8s | Starting the upgrade

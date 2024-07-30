@@ -4,7 +4,7 @@
   tasks:
   - name: Health | Set facts
     set_fact:
-      talosctl_opts: --nodes {{ inventory_hostname }} --endpoints {{ inventory_hostname }} --talosconfig={{ inventory_dir }}/talosconfig
+      talosctl_opts: --nodes {{ inventory_hostname }} --endpoints {{ ansible_host | default(inventory_hostname) }} --talosconfig={{ inventory_dir }}/talosconfig
 
   - name: Health | Wait for the node to be ready
     until: health is success

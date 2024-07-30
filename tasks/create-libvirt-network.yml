@@ -1,27 +1,28 @@
-- name: Create a network
+- name: Libvirt | Create a network
   delegate_to: localhost
   run_once: true
   block:
-  - name: Check the network
+  - name: Libvirt | Check the network
     ansible.builtin.command: virsh net-info {{ item.name }}
     register: exists
     changed_when: false
     failed_when: false
 
-  - when: exists.stdout_lines | length == 0
+  - when:
+    - exists.stdout_lines | length == 0
+    - item.name != "default"
     block:
-    - name: Define a new network
+    - name: Libvirt | Define a new network
       connection: local
       template:
         src: "{{ inventory_dir }}/day-0/templates/libvirt-net.xml.j2"
         dest: /tmp/libvirt-{{ item.name }}.xml
         remote_src: false
 
-    - name: Create a new network
-      register: result
+    - name: Libvirt | Create a new network
       ansible.builtin.command: virsh net-create /tmp/libvirt-{{ item.name }}.xml
 
-    - name: Delete temporary files
+    - name: Libvirt | Delete temporary files
       ansible.builtin.file:
         path: /tmp/libvirt-{{ item.name }}.xml
         state: absent
