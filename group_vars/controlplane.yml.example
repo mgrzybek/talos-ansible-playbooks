@@ -3,7 +3,7 @@
 generic_machineconfig: controlplane.yaml
 
 cilium:
-  version: 1.15.1
+  version: 1.16.1
   hubble_ui_emdpoint_cidr: 192.168.70.131
   l2:
     blocks:
