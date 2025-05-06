@@ -20,4 +20,7 @@
         The cluster has already been deployed. Switch to '../day-2' operations directory and use 'add-nodes' target.
 
   - name: Applying configuration | Including tasks
+    include_tasks: '{{ inventory_dir }}/tasks/gen-host-conf.yml'
+
+  - name: Applying configuration | Including tasks
     include_tasks: '{{ inventory_dir }}/tasks/apply-host-conf.yml'
