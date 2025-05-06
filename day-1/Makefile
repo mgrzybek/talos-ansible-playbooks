@@ -46,7 +46,7 @@ apply-conf:
 	$(ANSIBLE_PLAYBOOK) playbooks/apply-conf.yml
 
 .PHONY: health
-health:
+health: ## Check cluster's health'
 	$(WHICH) ansible-playbook
 	test -f ../talosconfig
 	$(ANSIBLE_PLAYBOOK) playbooks/health.yml
