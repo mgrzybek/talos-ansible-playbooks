@@ -55,9 +55,11 @@
             --cdrom {{ iso }} \
             --noautoconsole
 
-  - name: Libvirt | Create the domain
+  - name: Libvirt | Start the domain
     delegate_to: localhost
-    when: result.stdout | regex_search("running") == None
+    register: start
+    failed_when: false
+    changed_when: start.stdout | regex_search("Domain is already active") == None
     ansible.builtin.command: virsh start {{ inventory_hostname }}
 
   - name: Libvirt | Get the mgmt ip address

@@ -59,11 +59,11 @@
   - adding_node is defined
   - adding_node is true
   delegate_to: localhost
-  until: inventory_hostname in result.stdout_lines
+  until: result is success
   register: result
   retries: 30
   delay: 60
   changed_when: false
-  ansible.builtin.shell: kubectl get nodes -o wide | awk '{print $6}'
+  ansible.builtin.shell: kubectl get nodes {{ ansible_host | default(inventory_hostname) }}
   environment:
     no_proxy: "{{ ansible_host | default(inventory_hostname) }}"

@@ -59,6 +59,7 @@
         url: "{{ vip_endpoint }}"
         status_code: 403
         use_proxy: false
+        validate_certs: false
 
     - name: Bootstrap | Update the kubectl context
       delegate_to: localhost

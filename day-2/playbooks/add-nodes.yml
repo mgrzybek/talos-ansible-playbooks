@@ -20,7 +20,7 @@
       nodes: '{{ members.stdout | split(" ") }}'
 
   - name: Adding new nodes | Configuring if not a member yet
-    when: not inventory_hostname in nodes
+    when: not ansible_host | default(inventory_hostname) in nodes
     block:
     - name: Adding new nodes | Configuring the new node
       include_tasks: '{{ inventory_dir }}/tasks/gen-host-conf.yml'

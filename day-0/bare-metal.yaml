@@ -1,3 +1,4 @@
 customization:
   systemExtensions:
-    officialExtensions: []
+    officialExtensions:
+    - siderolabs/tailscale
